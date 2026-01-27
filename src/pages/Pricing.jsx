@@ -1,169 +1,246 @@
 import { useNavigate } from 'react-router-dom'
 import { SignedIn, SignedOut } from '@clerk/clerk-react'
+import { AiOutlineCheck } from 'react-icons/ai'
 
 export default function Pricing() {
   const navigate = useNavigate()
 
   const plans = [
     {
-      name: 'Starter',
-      price: 'Free',
+      name: 'Free',
+      price: '$0',
+      period: 'Forever',
+      description: 'Perfect for trying Aimalyze',
+      scanLimit: '1 scan per day',
       features: [
-        '5 videos per month',
-        'Basic video analysis',
-        'Standard processing speed',
+        'AI-powered cheat detection',
+        'Basic analysis reports',
+        'Instant results',
+        '7 GB storage',
+        'Community support'
+      ],
+      cta: 'Start Free',
+      highlighted: false,
+      gradient: 'from-blue-500 to-cyan-500'
+    },
+    {
+      name: 'Gamer',
+      price: '$9',
+      period: '/month',
+      description: 'Most popular for competitive players',
+      scanLimit: '50 scans per month',
+      features: [
+        'Unlimited monthly scans',
+        'Advanced AI analysis',
+        'Priority processing',
+        '100 GB storage',
         'Email support',
-        '1 GB storage'
+        'Detailed analytics dashboard',
+        'Export reports as PDF'
       ],
       cta: 'Get Started',
-      highlighted: false
+      highlighted: true,
+      gradient: 'from-neon-cyan to-neon-pink'
     },
     {
-      name: 'Professional',
-      price: '$29',
-      period: '/month',
+      name: 'Wager Org',
+      price: '$199',
+      period: 'One-time',
+      description: 'For teams and organizations',
+      scanLimit: 'Unlimited scans',
       features: [
-        'Unlimited videos',
-        'Advanced AI analysis with Gemini',
-        'Priority processing',
-        'Email & chat support',
-        '100 GB storage',
-        'Custom analytics reports',
-        'API access'
-      ],
-      cta: 'Start Free Trial',
-      highlighted: true
-    },
-    {
-      name: 'Enterprise',
-      price: 'Custom',
-      features: [
-        'Everything in Professional',
-        'Dedicated account manager',
-        'Custom integrations',
-        'Priority support 24/7',
+        'Lifetime license',
+        'Unlimited scans forever',
+        'Advanced AI analysis',
         'Unlimited storage',
-        'Advanced security features',
-        'Custom SLA'
+        'Priority support 24/7',
+        'Team management (up to 10 users)',
+        'Custom integrations',
+        'Detailed audit logs'
       ],
-      cta: 'Contact Sales',
-      highlighted: false
+      cta: 'Get Lifetime Access',
+      highlighted: false,
+      gradient: 'from-neon-purple to-neon-pink'
     }
   ]
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-8">
-      <div className="max-w-5xl mx-auto text-center mb-16">
-        <h1 className="text-5xl font-bold mb-2 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent drop-shadow-lg">💸 Choose Your Plan</h1>
-        <p className="text-xl text-gray-300">Flexible pricing for every need</p>
+    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-950 to-gray-900 text-white p-6 sm:p-8">
+      {/* Animated Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 right-1/3 w-96 h-96 bg-neon-pink/5 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-40 left-1/4 w-80 h-80 bg-neon-cyan/5 rounded-full blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+      <div className="relative z-10 max-w-5xl mx-auto text-center mb-16">
+        <h1 className="text-5xl sm:text-6xl font-bold mb-4 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent drop-shadow-lg">
+          Simple, Transparent Pricing
+        </h1>
+        <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto">
+          Choose the perfect plan for your gaming needs. No hidden fees, cancel anytime.
+        </p>
+      </div>
+
+      {/* Pricing Cards */}
+      <div className="relative z-10 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
         {plans.map((plan, index) => (
           <div
             key={index}
-            className={`relative rounded-lg p-10 transition-all hover:shadow-lg ${
+            className={`relative rounded-2xl overflow-hidden transition-all duration-300 ${
               plan.highlighted
-                ? 'bg-gray-900 border-2 border-neon-cyan shadow-lg shadow-cyan-500/40 lg:scale-105 hover:shadow-cyan-500/60'
-                : 'bg-gray-900 border border-neon-cyan/30 hover:border-neon-cyan/60 hover:shadow-cyan-500/20'
+                ? 'md:scale-105 md:row-span-2'
+                : ''
             }`}
           >
-            {plan.highlighted && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-neon-cyan to-neon-pink text-gray-950 px-4 py-1 rounded-full text-sm font-bold shadow-lg shadow-cyan-500/50">
-                Most Popular
-              </div>
-            )}
-            <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">{plan.name}</h2>
-            <div className="flex items-baseline gap-1 mb-4">
-              <span className="text-4xl font-bold bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">{plan.price}</span>
-              {plan.period && <span className="text-gray-400">{plan.period}</span>}
-            </div>
-            <p className="text-gray-400 mb-6 h-6">
-              {plan.name === 'Starter' && 'Perfect for trying Aimalyze'}
-              {plan.name === 'Professional' && 'Best for content creators & teams'}
-              {plan.name === 'Enterprise' && 'For large-scale operations'}
-            </p>
+            {/* Gradient Background */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${plan.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
 
-            <button
-              onClick={() => navigate('/upload')}
-              className={`w-full py-3 px-4 rounded-lg font-bold text-lg mb-8 transition-all ${
+            {/* Card Container */}
+            <div
+              className={`relative backdrop-blur-sm p-8 rounded-2xl h-full transition-all duration-300 group ${
                 plan.highlighted
-                  ? 'bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50 hover:scale-105 text-gray-950'
-                  : 'bg-transparent border-2 border-neon-cyan text-neon-cyan hover:bg-neon-cyan/10 hover:shadow-lg hover:shadow-cyan-500/30'
+                  ? 'bg-gradient-to-br from-gray-800/80 to-gray-900/80 border-2 border-neon-cyan shadow-2xl shadow-cyan-500/40 hover:shadow-cyan-500/60'
+                  : 'bg-gray-800/50 border border-neon-cyan/30 hover:border-neon-cyan/60 hover:shadow-lg hover:shadow-cyan-500/20'
               }`}
             >
-              {plan.cta}
-            </button>
-
-            <div className="space-y-4">
-              {plan.features.map((feature, idx) => (
-                <div key={idx} className="flex items-center gap-3 text-gray-300 group">
-                  <span className="text-neon-cyan font-bold text-lg group-hover:drop-shadow-[0_0_8px_rgba(0,255,198,0.5)] transition-all">✓</span>
-                  <span className="group-hover:text-white transition-colors">{feature}</span>
+              {/* Popular Badge */}
+              {plan.highlighted && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <div className="bg-gradient-to-r from-neon-cyan to-neon-pink text-gray-950 px-6 py-2 rounded-full text-sm font-bold shadow-lg shadow-cyan-500/50 flex items-center gap-2">
+                    ⭐ Most Popular
+                  </div>
                 </div>
-              ))}
+              )}
+
+              {/* Plan Header */}
+              <div className="mb-8">
+                <h2 className={`text-3xl font-bold mb-2 bg-gradient-to-r ${plan.gradient} bg-clip-text text-transparent`}>
+                  {plan.name}
+                </h2>
+                <p className="text-gray-400 text-sm mb-4">{plan.description}</p>
+                <div className="flex items-baseline gap-2 mb-2">
+                  <span className="text-5xl font-bold text-white">{plan.price}</span>
+                  <span className="text-gray-400 text-sm">{plan.period}</span>
+                </div>
+                <div className="inline-block px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg">
+                  <p className="text-neon-cyan font-semibold text-sm">{plan.scanLimit}</p>
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <button
+                onClick={() => navigate('/upload')}
+                className={`w-full py-3 px-4 rounded-lg font-bold text-base mb-8 transition-all duration-300 ${
+                  plan.highlighted
+                    ? 'bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50 hover:scale-105 text-gray-950 group-hover:scale-105'
+                    : 'bg-transparent border-2 border-neon-cyan text-neon-cyan hover:bg-neon-cyan/10 hover:shadow-lg hover:shadow-cyan-500/30'
+                }`}
+              >
+                {plan.cta} →
+              </button>
+
+              {/* Features List */}
+              <div className="space-y-4">
+                <p className="text-gray-400 text-sm font-semibold uppercase tracking-wider mb-6">What's Included</p>
+                {plan.features.map((feature, idx) => (
+                  <div key={idx} className="flex items-start gap-3 group/item">
+                    <AiOutlineCheck className="w-5 h-5 text-neon-cyan flex-shrink-0 mt-0.5 group-hover/item:drop-shadow-[0_0_8px_rgba(0,255,198,0.6)] transition-all" />
+                    <span className="text-gray-300 group-hover/item:text-white transition-colors text-sm">{feature}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      <section className="max-w-4xl mx-auto mb-16">
-        <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">Frequently Asked Questions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-gray-900 border border-neon-cyan/30 hover:border-neon-cyan/60 rounded-lg p-8 transition-all hover:shadow-lg hover:shadow-cyan-500/20">
-            <h3 className="text-lg font-bold mb-3 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">Can I switch plans anytime?</h3>
-            <p className="text-gray-400 leading-relaxed">
-              Yes! You can upgrade or downgrade your plan at any time. Changes take effect immediately.
+      {/* FAQ Section */}
+      <div className="relative z-10 max-w-4xl mx-auto mb-20">
+        <h2 className="text-4xl font-bold text-center mb-4 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">
+          Frequently Asked Questions
+        </h2>
+        <p className="text-center text-gray-400 mb-12">Everything you need to know about our pricing</p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[
+            {
+              q: 'Can I upgrade or downgrade anytime?',
+              a: 'Yes! You can change your plan at any time. Changes take effect immediately, and we'll prorate your billing.'
+            },
+            {
+              q: 'What happens if I exceed my scan limit?',
+              a: 'You can purchase additional scans as needed, or upgrade to a higher tier. No automatic charges.'
+            },
+            {
+              q: 'Is there a free trial?',
+              a: 'Yes! Start with our Free plan to test Aimalyze. Upgrade anytime with no credit card required initially.'
+            },
+            {
+              q: 'Do you offer refunds?',
+              a: 'We offer a 30-day money-back guarantee. If you\'re not satisfied, we\'ll refund your payment, no questions asked.'
+            },
+            {
+              q: 'What payment methods do you accept?',
+              a: 'We accept all major credit cards (Visa, Mastercard, Amex), PayPal, and bank transfers for enterprise customers.'
+            },
+            {
+              q: 'Is Wager Org truly lifetime?',
+              a: 'Yes! With Wager Org, you get a one-time payment for unlimited scans forever. Free updates included.'
+            }
+          ].map((item, idx) => (
+            <div key={idx} className="bg-gray-800/40 border border-neon-cyan/20 hover:border-neon-cyan/60 rounded-xl p-6 transition-all duration-300 hover:bg-gray-800/60 hover:shadow-lg hover:shadow-cyan-500/10 group">
+              <h3 className="text-lg font-bold mb-3 text-neon-cyan group-hover:text-neon-pink transition-colors">{item.q}</h3>
+              <p className="text-gray-300 leading-relaxed text-sm">{item.a}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Final CTA Section */}
+      <div className="relative z-10 max-w-3xl mx-auto">
+        <div className="relative overflow-hidden rounded-2xl p-12 md:p-16">
+          {/* Background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-neon-cyan/10 via-neon-purple/10 to-neon-pink/10 blur-xl"></div>
+          <div className="absolute inset-0 border border-neon-cyan/30 rounded-2xl"></div>
+
+          <div className="relative z-10 text-center">
+            <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">
+              Ready to elevate your gameplay? 🚀
+            </h2>
+            <p className="text-lg text-gray-300 mb-8 max-w-xl mx-auto">
+              Join thousands of competitive gamers using Aimalyze to detect cheaters and maintain fair play.
             </p>
-          </div>
-          <div className="bg-gray-900 border border-neon-cyan/30 hover:border-neon-cyan/60 rounded-lg p-8 transition-all hover:shadow-lg hover:shadow-cyan-500/20">
-            <h3 className="text-lg font-bold mb-3 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">Do you offer refunds?</h3>
-            <p className="text-gray-400 leading-relaxed">
-              We offer a 30-day money-back guarantee. If you're not satisfied, we'll refund your payment.
-            </p>
-          </div>
-          <div className="bg-gray-900 border border-neon-cyan/30 hover:border-neon-cyan/60 rounded-lg p-8 transition-all hover:shadow-lg hover:shadow-cyan-500/20">
-            <h3 className="text-lg font-bold mb-3 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">Is there a free trial?</h3>
-            <p className="text-gray-400 leading-relaxed">
-              Yes! Professional and Enterprise plans come with a 14-day free trial. No credit card required.
-            </p>
-          </div>
-          <div className="bg-gray-900 border border-neon-cyan/30 hover:border-neon-cyan/60 rounded-lg p-8 transition-all hover:shadow-lg hover:shadow-cyan-500/20">
-            <h3 className="text-lg font-bold mb-3 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">What if I need more storage?</h3>
-            <p className="text-gray-400 leading-relaxed">
-              Additional storage is available for $5/100GB. Contact our sales team for custom packages.
-            </p>
-          </div>
-          <div className="bg-gray-900 border border-neon-cyan/30 hover:border-neon-cyan/60 rounded-lg p-8 transition-all hover:shadow-lg hover:shadow-cyan-500/20">
-            <h3 className="text-lg font-bold mb-3 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">Do you have educational discounts?</h3>
-            <p className="text-gray-400 leading-relaxed">
-              Yes! Students and educational institutions get 50% off. Please contact our sales team.
-            </p>
-          </div>
-          <div className="bg-gray-900 border border-neon-cyan/30 hover:border-neon-cyan/60 rounded-lg p-8 transition-all hover:shadow-lg hover:shadow-cyan-500/20">
-            <h3 className="text-lg font-bold mb-3 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">What payment methods do you accept?</h3>
-            <p className="text-gray-400 leading-relaxed">
-              We accept all major credit cards, PayPal, and bank transfers for Enterprise customers.
-            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <SignedIn>
+                <button 
+                  onClick={() => navigate('/upload')}
+                  className="px-8 py-4 bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50 hover:scale-105 text-gray-950 font-bold rounded-lg transition-all duration-300 text-base"
+                >
+                  Get Started Now →
+                </button>
+              </SignedIn>
+              <SignedOut>
+                <button 
+                  onClick={() => navigate('/')}
+                  className="px-8 py-4 border-2 border-neon-cyan text-neon-cyan hover:bg-neon-cyan/10 hover:shadow-lg hover:shadow-cyan-500/30 font-bold rounded-lg transition-all duration-300"
+                >
+                  Sign In First
+                </button>
+              </SignedOut>
+              <button 
+                onClick={() => {
+                  const element = document.querySelector('h2')
+                  element?.scrollIntoView({ behavior: 'smooth' })
+                }}
+                className="px-8 py-4 border-2 border-neon-purple/50 text-neon-purple/90 hover:border-neon-purple hover:bg-neon-purple/10 hover:shadow-lg hover:shadow-purple-500/30 font-bold rounded-lg transition-all duration-300"
+              >
+                Compare Plans
+              </button>
+            </div>
           </div>
         </div>
-      </section>
-
-      <section className="max-w-2xl mx-auto text-center bg-gray-900 border border-neon-cyan/30 rounded-lg p-12 shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 transition-all">
-        <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">Ready to get started?</h2>
-        <p className="text-lg text-gray-300 mb-8">Join thousands of creators using Aimalyze</p>
-        <SignedIn>
-          <button 
-            onClick={() => navigate('/upload')}
-            className="px-8 py-3 bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50 hover:scale-105 text-gray-950 font-bold rounded-lg transition-all duration-300 text-lg"
-          >
-            Upload Your First Video 🚀
-          </button>
-        </SignedIn>
-        <SignedOut>
-          <p className="text-lg text-gray-400">Sign in to get started with your chosen plan</p>
-        </SignedOut>
-      </section>
+      </div>
     </div>
   )
 }
