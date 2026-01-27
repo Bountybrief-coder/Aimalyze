@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { SignedIn, SignedOut } from '@clerk/clerk-react'
 import { AiOutlineCheckCircle, AiOutlineRocket, AiOutlineShield, AiOutlineBars } from 'react-icons/ai'
+import { motion } from 'framer-motion'
 
 export default function Landing() {
   const navigate = useNavigate()
@@ -35,7 +36,12 @@ export default function Landing() {
   ]
 
   return (
-    <div className="bg-gray-950 text-white overflow-hidden">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+      className="bg-gray-950 text-white overflow-hidden"
+    >
       {/* Hero Section */}
       <section className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center relative px-4 py-20 overflow-hidden">
         {/* Animated Background */}
@@ -46,52 +52,93 @@ export default function Landing() {
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 text-center max-w-4xl mx-auto">
-          <div className="inline-block mb-6 px-4 py-2 bg-neon-cyan/20 border border-neon-cyan/50 rounded-full text-neon-cyan text-sm font-semibold">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.6 }}
+          className="relative z-10 text-center max-w-4xl mx-auto"
+        >
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            className="inline-block mb-6 px-4 py-2 bg-neon-cyan/20 border border-neon-cyan/50 rounded-full text-neon-cyan text-sm font-semibold"
+          >
             🎮 AI-Powered Cheat Detection
-          </div>
+          </motion.div>
 
-          <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent drop-shadow-lg">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent drop-shadow-lg"
+          >
             Detect Cheaters in Seconds
-          </h1>
+          </motion.h1>
 
-          <p className="text-xl md:text-2xl text-gray-300 mb-4 font-light">
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="text-xl md:text-2xl text-gray-300 mb-4 font-light"
+          >
             Advanced AI analysis for competitive gamers who demand fair play
-          </p>
+          </motion.p>
 
-          <p className="text-lg text-gray-400 mb-12 leading-relaxed max-w-2xl mx-auto">
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="text-lg text-gray-400 mb-12 leading-relaxed max-w-2xl mx-auto"
+          >
             Upload your gameplay footage and let Aimalyze's powerful AI instantly detect suspicious patterns, aim-lock exploits, and unfair advantages. Protect your competitive integrity.
-          </p>
+          </motion.p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
+          >
             <SignedIn>
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => navigate('/upload')} 
-                className="group px-8 py-4 bg-gradient-to-r from-neon-cyan to-neon-pink text-gray-950 font-bold text-lg rounded-lg hover:shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+                className="group px-8 py-4 bg-gradient-to-r from-neon-cyan to-neon-pink text-gray-950 font-bold text-lg rounded-lg hover:shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300 flex items-center justify-center gap-2"
               >
                 <span>🔍</span> Scan My Gameplay
-              </button>
-              <button 
+              </motion.button>
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => navigate('/dashboard')} 
                 className="px-8 py-4 border-2 border-neon-cyan text-neon-cyan font-bold text-lg rounded-lg hover:bg-neon-cyan/10 hover:shadow-lg hover:shadow-cyan-500/30 transition-all duration-300 flex items-center justify-center gap-2"
               >
                 <span>📊</span> View Results
-              </button>
+              </motion.button>
             </SignedIn>
 
             <SignedOut>
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => navigate('/upload')} 
-                className="group px-8 py-4 bg-gradient-to-r from-neon-cyan to-neon-pink text-gray-950 font-bold text-lg rounded-lg hover:shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+                className="group px-8 py-4 bg-gradient-to-r from-neon-cyan to-neon-pink text-gray-950 font-bold text-lg rounded-lg hover:shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300 flex items-center justify-center gap-2"
               >
                 <span>🔍</span> Get Started Free
-              </button>
+              </motion.button>
             </SignedOut>
-          </div>
+          </motion.div>
 
           {/* Trust Badge */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-gray-400 text-sm">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-6 text-gray-400 text-sm"
+          >
             <div className="flex items-center gap-2">
               <span className="text-neon-cyan">✓</span> 10,000+ Gamers Analyzed
             </div>
@@ -101,14 +148,26 @@ export default function Landing() {
             <div className="flex items-center gap-2">
               <span className="text-neon-cyan">✓</span> Sub-Second Results
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 px-4 bg-gradient-to-b from-gray-950 to-gray-900 relative">
+      <motion.section 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true, margin: "-100px" }}
+        className="py-20 px-4 bg-gradient-to-b from-gray-950 to-gray-900 relative"
+      >
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
             <h2 className="text-5xl font-bold mb-4 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">
               Why Choose Aimalyze?
             </h2>

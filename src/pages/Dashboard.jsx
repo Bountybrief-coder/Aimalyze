@@ -1,5 +1,7 @@
 import { useAuth } from '@clerk/clerk-react'
 import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { PulseLoader } from 'react-spinners'
 
 export default function Dashboard() {
   const { isLoaded, userId } = useAuth()
@@ -10,99 +12,163 @@ export default function Dashboard() {
   ])
 
   if (!isLoaded) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white text-lg">Loading...</div>
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-white">
+        <PulseLoader color="#00FFC6" size={15} />
+        <p className="mt-4 text-gray-400">Loading dashboard...</p>
+      </div>
+    )
   }
 
   if (!userId) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-950 text-white text-lg">Please sign in to view your dashboard</div>
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen flex items-center justify-center bg-gray-950 text-white text-lg"
+      >
+        Please sign in to view your dashboard
+      </motion.div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-8">
-      <div className="max-w-6xl mx-auto mb-12">
-        <h1 className="text-4xl font-bold mb-2">📊 Your Dashboard</h1>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gray-950 text-white p-8"
+    >
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1, duration: 0.5 }}
+        className="max-w-6xl mx-auto mb-12"
+      >
+        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">📊 Your Dashboard</h1>
         <p className="text-lg text-gray-400">Manage and analyze your video uploads</p>
-      </div>
+      </motion.div>
 
-      <div className="max-w-6xl mx-auto mb-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 text-center shadow-lg">
-          <div className="text-4xl font-bold text-primary mb-2">3</div>
-          <div className="text-gray-400">Total Videos</div>
-        </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 text-center shadow-lg">
-          <div className="text-4xl font-bold text-primary mb-2">2</div>
-          <div className="text-gray-400">Analyzed</div>
-        </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 text-center shadow-lg">
-          <div className="text-4xl font-bold text-primary mb-2">1</div>
-          <div className="text-gray-400">Processing</div>
-        </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 text-center shadow-lg">
-          <div className="text-4xl font-bold text-primary mb-2">12.5 min</div>
-          <div className="text-gray-400">Total Duration</div>
-        </div>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2, staggerChildren: 0.1 }}
+        className="max-w-6xl mx-auto mb-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+      >
+        {[
+          { label: 'Total Videos', value: '3', emoji: '📹' },
+          { label: 'Analyzed', value: '2', emoji: '✅' },
+          { label: 'Processing', value: '1', emoji: '⏳' },
+          { label: 'Total Duration', value: '12.5 min', emoji: '⏱️' }
+        ].map((stat, idx) => (
+          <motion.div 
+            key={idx}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 + idx * 0.1 }}
+            whileHover={{ scale: 1.05, y: -4 }}
+            className="bg-gray-900 border border-neon-cyan/30 hover:border-neon-cyan/60 rounded-lg p-8 text-center shadow-lg hover:shadow-cyan-500/20 transition-all"
+          >
+            <div className="text-4xl mb-2">{stat.emoji}</div>
+            <div className="text-4xl font-bold text-neon-cyan mb-2">{stat.value}</div>
+            <div className="text-gray-400">{stat.label}</div>
+          </motion.div>
+        ))}
+      </motion.div>
 
-      <section className="max-w-6xl mx-auto mb-12 bg-gray-900 border border-gray-800 rounded-lg p-8">
-        <h2 className="text-2xl font-bold mb-6 text-white">Your Videos</h2>
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+        className="max-w-6xl mx-auto mb-12 bg-gray-900 border border-neon-cyan/30 rounded-lg p-8 shadow-lg shadow-cyan-500/10"
+      >
+        <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">Your Videos</h2>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-950">
               <tr>
-                <th className="px-4 py-3 text-left font-bold border-b-2 border-gray-800 text-gray-300">Title</th>
-                <th className="px-4 py-3 text-left font-bold border-b-2 border-gray-800 text-gray-300">Upload Date</th>
-                <th className="px-4 py-3 text-left font-bold border-b-2 border-gray-800 text-gray-300">Duration</th>
-                <th className="px-4 py-3 text-left font-bold border-b-2 border-gray-800 text-gray-300">Status</th>
-                <th className="px-4 py-3 text-left font-bold border-b-2 border-gray-800 text-gray-300">Actions</th>
+                <th className="px-4 py-3 text-left font-bold border-b-2 border-neon-cyan/30 text-gray-300">Title</th>
+                <th className="px-4 py-3 text-left font-bold border-b-2 border-neon-cyan/30 text-gray-300">Upload Date</th>
+                <th className="px-4 py-3 text-left font-bold border-b-2 border-neon-cyan/30 text-gray-300">Duration</th>
+                <th className="px-4 py-3 text-left font-bold border-b-2 border-neon-cyan/30 text-gray-300">Status</th>
+                <th className="px-4 py-3 text-left font-bold border-b-2 border-neon-cyan/30 text-gray-300">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {videos.map(video => (
-                <tr key={video.id} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+              {videos.map((video, idx) => (
+                <motion.tr 
+                  key={video.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + idx * 0.1 }}
+                  whileHover={{ backgroundColor: 'rgba(0, 255, 198, 0.05)', x: 4 }}
+                  className="border-b border-gray-800 transition-colors"
+                >
                   <td className="px-4 py-3 text-gray-400">{video.title}</td>
                   <td className="px-4 py-3 text-gray-400">{video.uploadDate}</td>
                   <td className="px-4 py-3 text-gray-400">{video.duration}</td>
                   <td className="px-4 py-3">
-                    <span className={`px-3 py-1 rounded-md font-bold text-sm ${
-                      video.status === 'analyzed' 
-                        ? 'bg-green-600/30 text-green-400' 
-                        : 'bg-amber-600/30 text-amber-400'
-                    }`}>
+                    <motion.span 
+                      initial={{ scale: 0.9 }}
+                      animate={{ scale: 1 }}
+                      className={`px-3 py-1 rounded-md font-bold text-sm inline-block ${
+                        video.status === 'analyzed' 
+                          ? 'bg-green-600/30 text-green-400' 
+                          : 'bg-amber-600/30 text-amber-400'
+                      }`}
+                    >
                       {video.status === 'analyzed' ? '✓ Analyzed' : '⏳ Analyzing'}
-                    </span>
+                    </motion.span>
                   </td>
                   <td className="px-4 py-3">
-                    <button className="px-3 py-1 bg-primary hover:bg-blue-600 text-white rounded-md text-sm mr-2 transition-colors">
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-3 py-1 bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50 text-gray-950 font-bold rounded-md text-sm mr-2 transition-all"
+                    >
                       View
-                    </button>
-                    <button className="px-3 py-1 bg-primary hover:bg-blue-600 text-white rounded-md text-sm transition-colors">
+                    </motion.button>
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-3 py-1 border border-red-500/50 text-red-400 hover:bg-red-500/10 font-bold rounded-md text-sm transition-all"
+                    >
                       Delete
-                    </button>
+                    </motion.button>
                   </td>
-                </tr>
+                </motion.tr>
               ))}
             </tbody>
           </table>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="max-w-6xl mx-auto">
-        <h2 className="text-2xl font-bold mb-6 text-white">Recent Insights</h2>
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+      >
+        <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">Recent Insights</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 shadow-lg">
-            <h3 className="text-lg font-bold mb-2 text-primary">Most Common Topics</h3>
-            <p className="text-gray-400">Technology, AI, Machine Learning</p>
-          </div>
-          <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 shadow-lg">
-            <h3 className="text-lg font-bold mb-2 text-primary">Average Video Length</h3>
-            <p className="text-gray-400">4 minutes 10 seconds</p>
-          </div>
-          <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 shadow-lg">
-            <h3 className="text-lg font-bold mb-2 text-primary">Last Analysis</h3>
-            <p className="text-gray-400">2 hours ago</p>
-          </div>
+          {[
+            { title: 'Most Common Topics', value: 'Technology, AI, Machine Learning' },
+            { title: 'Average Video Length', value: '4 minutes 10 seconds' },
+            { title: 'Last Analysis', value: '2 hours ago' }
+          ].map((insight, idx) => (
+            <motion.div 
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 + idx * 0.1 }}
+              whileHover={{ scale: 1.05, y: -4 }}
+              className="bg-gray-900 border border-neon-cyan/30 hover:border-neon-cyan/60 rounded-lg p-8 shadow-lg hover:shadow-cyan-500/20 transition-all"
+            >
+              <h3 className="text-lg font-bold mb-2 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">{insight.title}</h3>
+              <p className="text-gray-400">{insight.value}</p>
+            </motion.div>
+          ))}
         </div>
-      </section>
-    </div>
+      </motion.section>
+    </motion.div>
   )
 }

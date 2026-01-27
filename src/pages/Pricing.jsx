@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { SignedIn, SignedOut } from '@clerk/clerk-react'
 import { AiOutlineCheck } from 'react-icons/ai'
+import { motion } from 'framer-motion'
 
 export default function Pricing() {
   const navigate = useNavigate()
@@ -65,27 +66,46 @@ export default function Pricing() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-950 to-gray-900 text-white p-6 sm:p-8">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gradient-to-b from-gray-950 via-gray-950 to-gray-900 text-white p-6 sm:p-8"
+    >
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 right-1/3 w-96 h-96 bg-neon-pink/5 rounded-full blur-3xl opacity-20 animate-pulse"></div>
         <div className="absolute bottom-40 left-1/4 w-80 h-80 bg-neon-cyan/5 rounded-full blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto text-center mb-16">
+      <motion.div 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1, duration: 0.5 }}
+        className="relative z-10 max-w-5xl mx-auto text-center mb-16"
+      >
         <h1 className="text-5xl sm:text-6xl font-bold mb-4 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent drop-shadow-lg">
           Simple, Transparent Pricing
         </h1>
         <p className="text-lg sm:text-xl text-gray-300 max-w-2xl mx-auto">
           Choose the perfect plan for your gaming needs. No hidden fees, cancel anytime.
         </p>
-      </div>
+      </motion.div>
 
       {/* Pricing Cards */}
-      <div className="relative z-10 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2, staggerChildren: 0.15 }}
+        className="relative z-10 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 mb-20"
+      >
         {plans.map((plan, index) => (
-          <div
+          <motion.div
             key={index}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 + index * 0.15, duration: 0.5 }}
+            whileHover={!plan.highlighted ? { scale: 1.05, y: -8 } : { y: -8 }}
             className={`relative rounded-2xl overflow-hidden transition-all duration-300 ${
               plan.highlighted
                 ? 'md:scale-105 md:row-span-2'
@@ -140,28 +160,49 @@ export default function Pricing() {
               </button>
 
               {/* Features List */}
-              <div className="space-y-4">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 + index * 0.15 + 0.2 }}
+                className="space-y-4"
+              >
                 <p className="text-gray-400 text-sm font-semibold uppercase tracking-wider mb-6">What's Included</p>
                 {plan.features.map((feature, idx) => (
-                  <div key={idx} className="flex items-start gap-3 group/item">
+                  <motion.div 
+                    key={idx}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 + index * 0.15 + 0.2 + idx * 0.05 }}
+                    className="flex items-start gap-3 group/item"
+                  >
                     <AiOutlineCheck className="w-5 h-5 text-neon-cyan flex-shrink-0 mt-0.5 group-hover/item:drop-shadow-[0_0_8px_rgba(0,255,198,0.6)] transition-all" />
                     <span className="text-gray-300 group-hover/item:text-white transition-colors text-sm">{feature}</span>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* FAQ Section */}
-      <div className="relative z-10 max-w-4xl mx-auto mb-20">
+      <motion.div 
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.5 }}
+        className="relative z-10 max-w-4xl mx-auto mb-20"
+      >
         <h2 className="text-4xl font-bold text-center mb-4 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">
           Frequently Asked Questions
         </h2>
         <p className="text-center text-gray-400 mb-12">Everything you need to know about our pricing</p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7, staggerChildren: 0.05 }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
           {[
             {
               q: 'Can I upgrade or downgrade anytime?',
@@ -188,16 +229,28 @@ export default function Pricing() {
               a: 'Yes! With Wager Org, you get a one-time payment for unlimited scans forever. Free updates included.'
             }
           ].map((item, idx) => (
-            <div key={idx} className="bg-gray-800/40 border border-neon-cyan/20 hover:border-neon-cyan/60 rounded-xl p-6 transition-all duration-300 hover:bg-gray-800/60 hover:shadow-lg hover:shadow-cyan-500/10 group">
+            <motion.div 
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 + idx * 0.05 }}
+              whileHover={{ scale: 1.02, y: -4 }}
+              className="bg-gray-800/40 border border-neon-cyan/20 hover:border-neon-cyan/60 rounded-xl p-6 transition-all duration-300 hover:bg-gray-800/60 hover:shadow-lg hover:shadow-cyan-500/10 group"
+            >
               <h3 className="text-lg font-bold mb-3 text-neon-cyan group-hover:text-neon-pink transition-colors">{item.q}</h3>
               <p className="text-gray-300 leading-relaxed text-sm">{item.a}</p>
-            </div>
+            </motion.div>
           ))}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Final CTA Section */}
-      <div className="relative z-10 max-w-3xl mx-auto">
+      <motion.div 
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8, duration: 0.5 }}
+        className="relative z-10 max-w-3xl mx-auto"
+      >
         <div className="relative overflow-hidden rounded-2xl p-12 md:p-16">
           {/* Background gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-neon-cyan/10 via-neon-purple/10 to-neon-pink/10 blur-xl"></div>
@@ -211,24 +264,35 @@ export default function Pricing() {
               Join thousands of competitive gamers using Aimalyze to detect cheaters and maintain fair play.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.9 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+            >
               <SignedIn>
-                <button 
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => navigate('/upload')}
-                  className="px-8 py-4 bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50 hover:scale-105 text-gray-950 font-bold rounded-lg transition-all duration-300 text-base"
+                  className="px-8 py-4 bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50 text-gray-950 font-bold rounded-lg transition-all duration-300 text-base"
                 >
                   Get Started Now →
-                </button>
+                </motion.button>
               </SignedIn>
               <SignedOut>
-                <button 
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => navigate('/')}
                   className="px-8 py-4 border-2 border-neon-cyan text-neon-cyan hover:bg-neon-cyan/10 hover:shadow-lg hover:shadow-cyan-500/30 font-bold rounded-lg transition-all duration-300"
                 >
                   Sign In First
-                </button>
+                </motion.button>
               </SignedOut>
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   const element = document.querySelector('h2')
                   element?.scrollIntoView({ behavior: 'smooth' })
@@ -236,11 +300,11 @@ export default function Pricing() {
                 className="px-8 py-4 border-2 border-neon-purple/50 text-neon-purple/90 hover:border-neon-purple hover:bg-neon-purple/10 hover:shadow-lg hover:shadow-purple-500/30 font-bold rounded-lg transition-all duration-300"
               >
                 Compare Plans
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }
