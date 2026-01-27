@@ -6,9 +6,8 @@ import {
   checkRateLimit,
   logIPAddress,
   cleanupOldLogs,
-  checkAnalysisQuota,
-  incrementDailyUsage,
-  logAnalysis
+  logAnalysis,
+  supabase
 } from './supabaseClient.js';
 
 const client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -32,6 +31,39 @@ export default async (req, context) => {
     // Get Clerk user ID from request (sent by frontend)
     const formData = await req.formData();
     const clerkUserId = formData.get('userId');
+
+    // PAID ACCESS ENFORCEMENT
+    let planType = 'free';
+    let lastScanAt = null;
+    if (clerkUserId) {
+      // 1. Check user_plans table for plan_type
+      const { data: planRow, error: planError } = await supabase
+        .from('user_plans')
+        .select('plan_type, last_scan_at')
+        .eq('user_id', clerkUserId)
+        .single();
+      if (planRow) {
+        planType = planRow.plan_type;
+        lastScanAt = planRow.last_scan_at;
+      }
+      // 2. If paid plan, allow unlimited
+      if (planType === 'monthly' || planType === 'lifetime') {
+        // allow
+      } else {
+        // 3. If free, check scan_usage for prior use
+        const { data: usageRows, error: usageError } = await supabase
+          .from('scan_usage')
+          .select('id')
+          .eq('user_id', clerkUserId)
+          .eq('used_free_scan', true);
+        if (usageRows && usageRows.length > 0) {
+          return new Response(
+            JSON.stringify({ error: 'Upgrade required', message: 'Your free scan has already been used. Please upgrade to continue.' }),
+            { status: 403, headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+    }
 
     // Check rate limit before processing (IP-based, for anonymous users)
     const rateLimitCheck = await checkRateLimit(clientIP, RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW_HOURS);
@@ -176,8 +208,29 @@ Be thorough but fair in your analysis.`;
     if (clerkUserId) {
       const fileSizeMb = (file.size / 1024 / 1024).toFixed(2);
       await logAnalysis(clerkUserId, file.name, fileSizeMb, result.verdict, result.confidence, JSON.stringify(result));
-      await incrementDailyUsage(clerkUserId);
-      console.log(`[USAGE LOGGED] User: ${clerkUserId}, File: ${file.name}`);
+      if (planType === 'free') {
+        // Mark free scan as used
+        await supabase.from('scan_usage').insert({
+          user_id: clerkUserId,
+          ip_address: clientIP,
+          used_free_scan: true,
+          created_at: new Date().toISOString()
+        });
+        // Update last_scan_at in user_plans
+        await supabase.from('user_plans').upsert({
+          user_id: clerkUserId,
+          plan_type: 'free',
+          last_scan_at: new Date().toISOString()
+        });
+      } else {
+        // Paid: update last_scan_at
+        await supabase.from('user_plans').upsert({
+          user_id: clerkUserId,
+          plan_type: planType,
+          last_scan_at: new Date().toISOString()
+        });
+      }
+      console.log(`[USAGE LOGGED] User: ${clerkUserId}, File: ${file.name}, Plan: ${planType}`);
     }
 
     // Periodically clean up old logs

@@ -96,7 +96,7 @@ export default function Upload() {
 
     // Check if user has quota before analyzing
     if (userPlan === 'free' && usage >= 1) {
-      setError('Free plan limited to 1 analysis per day. Upgrade to continue.')
+      setError('Free plan limited to 1 scan. Upgrade to continue.')
       return
     }
 
@@ -117,9 +117,13 @@ export default function Upload() {
       const data = await response.json()
 
       if (!response.ok) {
-        // Handle 402 Payment Required (quota exceeded)
-        if (response.status === 402) {
-          setError(data.message || 'Usage limit reached. Upgrade to continue.')
+        // Handle 403 Forbidden (upgrade required)
+        if (response.status === 403) {
+          setError(data.message || 'Upgrade required. Please upgrade to continue.')
+          // Optionally, redirect to /pricing
+          setTimeout(() => {
+            window.location.href = '/pricing'
+          }, 1500)
           return
         }
         throw new Error(data.error || 'Failed to analyze video')
@@ -204,13 +208,37 @@ export default function Upload() {
               
               {/* Upgrade CTA if on free plan and limit reached */}
               {userPlan === 'free' && usage >= 1 && (
-                <Link 
-                  to="/pricing"
-                  className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-neon-pink to-neon-purple hover:shadow-lg hover:shadow-pink-500/50 text-white rounded-lg font-bold text-sm sm:text-base cursor-pointer transition-all duration-300 hover:scale-105 whitespace-nowrap"
-                >
-                  🚀 Upgrade Now
-                </Link>
+                <>
+                  <button
+                    onClick={() => handleUpgrade('monthly')}
+                    className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-neon-pink to-neon-purple hover:shadow-lg hover:shadow-pink-500/50 text-white rounded-lg font-bold text-sm sm:text-base cursor-pointer transition-all duration-300 hover:scale-105 whitespace-nowrap mr-2"
+                  >
+                    🚀 Upgrade Monthly ($9/mo)
+                  </button>
+                  <button
+                    onClick={() => handleUpgrade('lifetime')}
+                    className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-neon-cyan to-neon-purple hover:shadow-lg hover:shadow-cyan-500/50 text-white rounded-lg font-bold text-sm sm:text-base cursor-pointer transition-all duration-300 hover:scale-105 whitespace-nowrap"
+                  >
+                    💎 Lifetime ($199)
+                  </button>
+                </>
               )}
+                // Stripe checkout handler
+                const handleUpgrade = async (planType) => {
+                  try {
+                    const response = await fetch('/.netlify/functions/create-stripe-session', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ userId, planType })
+                    })
+                    const data = await response.json()
+                    if (data.url) {
+                      window.location.href = data.url
+                    }
+                  } catch (err) {
+                    setError('Failed to start checkout. Please try again.')
+                  }
+                }
               {userPlan === 'free' && usage < 1 && (
                 <div className="text-xs sm:text-sm text-gray-400">
                   {1 - usage} scan{1 - usage !== 1 ? 's' : ''} remaining today
