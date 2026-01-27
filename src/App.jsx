@@ -11,13 +11,13 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       {/* Navigation Bar */}
-      <nav className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
+      <nav className="bg-gray-950 border-b border-neon-cyan/20 sticky top-0 z-50 backdrop-blur-sm bg-gray-950/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link 
               to="/" 
-              className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+              className="text-2xl font-bold bg-gradient-to-r from-neon-cyan via-neon-pink to-neon-purple bg-clip-text text-transparent hover:drop-shadow-[0_0_8px_rgba(255,0,128,0.6)] transition-all duration-300"
             >
               🎯 Aimalyze
             </Link>
@@ -26,26 +26,29 @@ export default function App() {
             <div className="hidden md:flex items-center gap-6">
               <Link 
                 to="/dashboard" 
-                className="text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+                className="text-gray-300 hover:text-neon-cyan transition-all duration-200 font-medium relative group"
               >
                 Dashboard
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-neon-cyan to-neon-pink group-hover:w-full transition-all duration-300"></span>
               </Link>
               <Link 
                 to="/upload" 
-                className="text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+                className="text-gray-300 hover:text-neon-cyan transition-all duration-200 font-medium relative group"
               >
                 Upload
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-neon-cyan to-neon-pink group-hover:w-full transition-all duration-300"></span>
               </Link>
               <Link 
                 to="/pricing" 
-                className="text-gray-300 hover:text-white transition-colors duration-200 font-medium"
+                className="text-gray-300 hover:text-neon-cyan transition-all duration-200 font-medium relative group"
               >
                 Pricing
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-neon-cyan to-neon-pink group-hover:w-full transition-all duration-300"></span>
               </Link>
               
               {/* Auth Button */}
               <SignedIn>
-                <div className="pl-6 border-l border-gray-700">
+                <div className="pl-6 border-l border-neon-cyan/30">
                   <UserButton 
                     appearance={{
                       elements: {

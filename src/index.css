@@ -1,9 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -19,11 +21,14 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #00FFC6;
   text-decoration: inherit;
+  transition: color 0.3s ease;
 }
+
 a:hover {
-  color: #535bf2;
+  color: #FF0080;
+  text-shadow: 0 0 10px rgba(255, 0, 128, 0.5);
 }
 
 body {

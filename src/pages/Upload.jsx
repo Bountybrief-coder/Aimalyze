@@ -106,8 +106,8 @@ export default function Upload() {
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">
       <div className="max-w-2xl mx-auto text-center mb-12">
-        <h1 className="text-4xl font-bold mb-2">🎮 Gameplay Analysis</h1>
-        <p className="text-lg text-gray-400">Upload a gameplay video to analyze for potential cheating</p>
+        <h1 className="text-5xl font-bold mb-2 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent drop-shadow-lg">🎮 Gameplay Analysis</h1>
+        <p className="text-lg text-gray-300">Upload a gameplay video to analyze for potential cheating</p>
       </div>
 
       {!analysisResult ? (
@@ -115,8 +115,8 @@ export default function Upload() {
           <div
             className={`border-2 border-dashed rounded-lg p-12 text-center transition-all ${
               dragActive
-                ? 'border-secondary bg-purple-900/20'
-                : 'border-primary bg-gray-900'
+                ? 'border-neon-pink bg-pink-900/20 shadow-lg shadow-pink-500/50'
+                : 'border-neon-cyan bg-gray-900 hover:border-neon-cyan/80 hover:shadow-lg hover:shadow-cyan-500/20'
             }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -126,7 +126,7 @@ export default function Upload() {
             <div className="text-5xl mb-4">🎬</div>
             <h2 className="text-2xl mb-2 text-white">Drag and drop your gameplay video here</h2>
             <p className="text-gray-400 mb-4">or</p>
-            <label htmlFor="fileInput" className="inline-block px-6 py-3 bg-primary hover:bg-blue-600 text-white rounded-lg font-bold cursor-pointer transition-colors">
+            <label htmlFor="fileInput" className="inline-block px-6 py-3 bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50 text-gray-950 rounded-lg font-bold cursor-pointer transition-all duration-300 hover:scale-105">
               Browse Files
             </label>
             <input
@@ -142,9 +142,9 @@ export default function Upload() {
           </div>
 
           {selectedFile && (
-            <div className="mt-8 bg-gray-900 border border-gray-800 rounded-lg p-8">
-              <h3 className="text-xl font-bold mb-4 text-white">Selected File</h3>
-              <div className="flex justify-between items-center p-4 bg-gray-950 rounded-lg mb-6 border border-gray-800">
+            <div className="mt-8 bg-gray-900 border border-neon-cyan/30 rounded-lg p-8 shadow-lg shadow-cyan-500/10">
+              <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">Selected File</h3>
+              <div className="flex justify-between items-center p-4 bg-gray-950 rounded-lg mb-6 border border-neon-cyan/20 hover:border-neon-cyan/50 transition-colors">
                 <div className="flex items-center gap-2 text-white">
                   <span className="text-2xl">📄</span>
                   <span>{selectedFile.name}</span>
@@ -159,9 +159,9 @@ export default function Upload() {
                 disabled={isAnalyzing}
                 className={`w-full py-3 px-4 font-bold rounded-lg text-lg flex items-center justify-center gap-2 transition-all ${
                   isAnalyzing
-                    ? 'bg-primary/60 cursor-not-allowed opacity-60'
-                    : 'bg-primary hover:bg-blue-600'
-                } text-white`}
+                    ? 'bg-gradient-to-r from-neon-cyan to-neon-pink/60 cursor-not-allowed opacity-60'
+                    : 'bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50 hover:scale-105'
+                } text-gray-950 font-bold`}
               >
                 {isAnalyzing ? (
                   <>
@@ -172,16 +172,16 @@ export default function Upload() {
                 )}
               </button>
 
-              {error && <div className="mt-4 p-4 bg-red-900/30 text-red-300 rounded-lg border border-red-700">{error}</div>}
+              {error && <div className="mt-4 p-4 bg-red-900/40 text-red-300 rounded-lg border border-red-600/60 shadow-lg shadow-red-500/20">{error}</div>}
             </div>
           )}
         </div>
       ) : (
         <div className="max-w-2xl mx-auto mb-12">
-          <div className={`bg-gray-900 p-12 rounded-lg border shadow-2xl ${
+          <div className={`bg-gray-900 p-12 rounded-lg border shadow-2xl transition-all ${
             analysisResult.cheatingDetected
-              ? 'border-red-600/50 shadow-red-600/20'
-              : 'border-green-600/50 shadow-green-600/20'
+              ? 'border-red-500 shadow-red-500/30'
+              : 'border-neon-cyan shadow-cyan-500/30'
           }`}>
             <div className="flex items-center gap-6 mb-8">
               <div className="text-5xl">
@@ -206,15 +206,15 @@ export default function Upload() {
               </div>
             </div>
 
-            <div className="mb-8 p-4 bg-gray-950 rounded-lg border border-gray-800">
-              <h3 className="text-lg font-bold mb-3 text-primary">Analysis Details</h3>
+            <div className="mb-8 p-4 bg-gray-950 rounded-lg border border-neon-cyan/30">
+              <h3 className="text-lg font-bold mb-3 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">Analysis Details</h3>
               <p className="text-gray-300 leading-relaxed">{analysisResult.explanation}</p>
             </div>
 
             <div className="flex justify-center">
               <button
                 onClick={resetAnalysis}
-                className="px-8 py-3 bg-primary hover:bg-blue-600 text-white font-bold rounded-lg transition-colors"
+                className="px-8 py-3 bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50 hover:scale-105 text-gray-950 font-bold rounded-lg transition-all duration-300"
               >
                 Analyze Another Video
               </button>
@@ -225,24 +225,24 @@ export default function Upload() {
 
       {!analysisResult && (
         <section className="max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold mb-8 text-center">How it works</h2>
+          <h2 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">How it works</h2>
           <div className="space-y-6">
-            <div className="flex gap-6 bg-gray-900 border border-gray-800 rounded-lg p-6">
-              <div className="flex items-center justify-center w-12 h-12 bg-primary rounded-full font-bold text-xl flex-shrink-0">1</div>
+            <div className="flex gap-6 bg-gray-900 border border-neon-cyan/30 hover:border-neon-cyan/60 rounded-lg p-6 transition-all hover:shadow-lg hover:shadow-cyan-500/10">
+              <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-neon-cyan to-neon-pink rounded-full font-bold text-xl flex-shrink-0 text-gray-950 shadow-lg shadow-cyan-500/50">1</div>
               <div>
                 <h4 className="text-lg font-bold mb-1 text-white">Upload</h4>
                 <p className="text-gray-400">Upload your gameplay video file</p>
               </div>
             </div>
-            <div className="flex gap-6 bg-gray-900 border border-gray-800 rounded-lg p-6">
-              <div className="flex items-center justify-center w-12 h-12 bg-primary rounded-full font-bold text-xl flex-shrink-0">2</div>
+            <div className="flex gap-6 bg-gray-900 border border-neon-cyan/30 hover:border-neon-cyan/60 rounded-lg p-6 transition-all hover:shadow-lg hover:shadow-cyan-500/10">
+              <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-neon-cyan to-neon-pink rounded-full font-bold text-xl flex-shrink-0 text-gray-950 shadow-lg shadow-cyan-500/50">2</div>
               <div>
                 <h4 className="text-lg font-bold mb-1 text-white">Analysis</h4>
                 <p className="text-gray-400">Our Gemini AI analyzes the video for cheating indicators</p>
               </div>
             </div>
-            <div className="flex gap-6 bg-gray-900 border border-gray-800 rounded-lg p-6">
-              <div className="flex items-center justify-center w-12 h-12 bg-primary rounded-full font-bold text-xl flex-shrink-0">3</div>
+            <div className="flex gap-6 bg-gray-900 border border-neon-cyan/30 hover:border-neon-cyan/60 rounded-lg p-6 transition-all hover:shadow-lg hover:shadow-cyan-500/10">
+              <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-neon-cyan to-neon-pink rounded-full font-bold text-xl flex-shrink-0 text-gray-950 shadow-lg shadow-cyan-500/50">3</div>
               <div>
                 <h4 className="text-lg font-bold mb-1 text-white">Results</h4>
                 <p className="text-gray-400">Get a confidence score and detailed analysis report</p>
