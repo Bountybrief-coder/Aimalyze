@@ -1,7 +1,15 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import fs from 'fs';
 import path from 'path';
-import { getClientIP, checkRateLimit, logIPAddress, cleanupOldLogs } from './supabaseClient.js';
+import {
+  getClientIP,
+  checkRateLimit,
+  logIPAddress,
+  cleanupOldLogs,
+  checkAnalysisQuota,
+  incrementDailyUsage,
+  logAnalysis
+} from './supabaseClient.js';
 
 const client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -21,7 +29,11 @@ export default async (req, context) => {
   console.log(`[REQUEST] IP: ${clientIP}, Time: ${new Date().toISOString()}`);
 
   try {
-    // Check rate limit before processing
+    // Get Clerk user ID from request (sent by frontend)
+    const formData = await req.formData();
+    const clerkUserId = formData.get('userId');
+
+    // Check rate limit before processing (IP-based, for anonymous users)
     const rateLimitCheck = await checkRateLimit(clientIP, RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW_HOURS);
     
     if (rateLimitCheck.limited) {
@@ -47,7 +59,31 @@ export default async (req, context) => {
       });
     }
 
-    const formData = await req.formData();
+    // If user is logged in, check pricing quota
+    if (clerkUserId) {
+      console.log(`[PRICING CHECK] User: ${clerkUserId}`);
+      
+      const quotaCheck = await checkAnalysisQuota(clerkUserId);
+      
+      if (!quotaCheck.allowed) {
+        console.warn(`[QUOTA EXCEEDED] User: ${clerkUserId}, Plan: ${quotaCheck.plan}, Usage: ${quotaCheck.usage}/${quotaCheck.limit}`);
+        
+        return new Response(JSON.stringify({
+          error: 'Usage limit reached',
+          message: quotaCheck.reason,
+          usage: quotaCheck.usage,
+          limit: quotaCheck.limit,
+          plan: quotaCheck.plan,
+          upgradeUrl: '/pricing'
+        }), {
+          status: 402,  // Payment Required
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      console.log(`[PRICING OK] User: ${clerkUserId}, Usage: ${quotaCheck.usage}/${quotaCheck.limit}, Plan: ${quotaCheck.plan}`);
+    }
+
     const file = formData.get('file');
 
     if (!file) {
@@ -135,6 +171,14 @@ Be thorough but fair in your analysis.`;
 
     const result = JSON.parse(jsonMatch[0]);
     console.log(`[SUCCESS] Analysis complete for IP ${clientIP}. Verdict: ${result.verdict}, Confidence: ${result.confidence}%`);
+
+    // Log analysis and increment usage if user is logged in
+    if (clerkUserId) {
+      const fileSizeMb = (file.size / 1024 / 1024).toFixed(2);
+      await logAnalysis(clerkUserId, file.name, fileSizeMb, result.verdict, result.confidence, JSON.stringify(result));
+      await incrementDailyUsage(clerkUserId);
+      console.log(`[USAGE LOGGED] User: ${clerkUserId}, File: ${file.name}`);
+    }
 
     // Periodically clean up old logs
     if (Math.random() < 0.1) { // 10% chance to run cleanup

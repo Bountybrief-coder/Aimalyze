@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@clerk/clerk-react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { BeatLoader, PulseLoader } from 'react-spinners'
 
@@ -10,6 +11,37 @@ export default function Upload() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisResult, setAnalysisResult] = useState(null)
   const [error, setError] = useState(null)
+  const [userPlan, setUserPlan] = useState(null)
+  const [usage, setUsage] = useState(null)
+  const [checkingQuota, setCheckingQuota] = useState(false)
+
+  // Check user's plan and quota on mount or when userId changes
+  useEffect(() => {
+    if (userId && isLoaded) {
+      checkUserQuota()
+    }
+  }, [userId, isLoaded])
+
+  const checkUserQuota = async () => {
+    setCheckingQuota(true)
+    try {
+      const response = await fetch('/.netlify/functions/check-quota', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setUserPlan(data.plan)
+        setUsage(data.usage)
+      }
+    } catch (err) {
+      console.error('Error checking quota:', err)
+    } finally {
+      setCheckingQuota(false)
+    }
+  }
 
   const handleDrag = (e) => {
     e.preventDefault()
@@ -62,6 +94,12 @@ export default function Upload() {
   const handleAnalyze = async () => {
     if (!selectedFile) return
 
+    // Check if user has quota before analyzing
+    if (userPlan === 'free' && usage >= 1) {
+      setError('Free plan limited to 1 analysis per day. Upgrade to continue.')
+      return
+    }
+
     setIsAnalyzing(true)
     setError(null)
     setAnalysisResult(null)
@@ -69,20 +107,28 @@ export default function Upload() {
     try {
       const formData = new FormData()
       formData.append('file', selectedFile)
+      formData.append('userId', userId)
 
       const response = await fetch('/.netlify/functions/analyze', {
         method: 'POST',
         body: formData
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to analyze video')
+        // Handle 402 Payment Required (quota exceeded)
+        if (response.status === 402) {
+          setError(data.message || 'Usage limit reached. Upgrade to continue.')
+          return
+        }
+        throw new Error(data.error || 'Failed to analyze video')
       }
 
-      const result = await response.json()
-      setAnalysisResult(result)
+      setAnalysisResult(data)
       setSelectedFile(null)
+      // Refresh quota after successful analysis
+      await checkUserQuota()
     } catch (err) {
       console.error('Analysis error:', err)
       setError(err.message || 'An error occurred while analyzing the video. Please try again.')
@@ -134,6 +180,46 @@ export default function Upload() {
         <h1 className="text-4xl sm:text-5xl font-bold mb-2 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent drop-shadow-lg">🎮 Gameplay Analysis</h1>
         <p className="text-base sm:text-lg text-gray-300">Upload a gameplay video to analyze for potential cheating</p>
       </motion.div>
+
+      {/* Quota Status */}
+      {userPlan && (
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.5 }}
+          className="max-w-2xl mx-auto mb-8"
+        >
+          <div className={`rounded-lg p-4 sm:p-6 border ${
+            userPlan === 'free' && usage >= 1
+              ? 'border-neon-pink/50 bg-pink-900/10'
+              : 'border-neon-cyan/30 bg-cyan-900/10'
+          }`}>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <p className="text-sm text-gray-400">Plan: <span className="text-neon-cyan font-bold capitalize">{userPlan}</span></p>
+                <p className="text-sm text-gray-400">Daily Usage: <span className={`font-bold ${userPlan === 'free' && usage >= 1 ? 'text-neon-pink' : 'text-neon-cyan'}`}>
+                  {usage}/{userPlan === 'wager_org' ? '∞' : userPlan === 'gamer' ? '50' : '1'}
+                </span></p>
+              </div>
+              
+              {/* Upgrade CTA if on free plan and limit reached */}
+              {userPlan === 'free' && usage >= 1 && (
+                <Link 
+                  to="/pricing"
+                  className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-neon-pink to-neon-purple hover:shadow-lg hover:shadow-pink-500/50 text-white rounded-lg font-bold text-sm sm:text-base cursor-pointer transition-all duration-300 hover:scale-105 whitespace-nowrap"
+                >
+                  🚀 Upgrade Now
+                </Link>
+              )}
+              {userPlan === 'free' && usage < 1 && (
+                <div className="text-xs sm:text-sm text-gray-400">
+                  {1 - usage} scan{1 - usage !== 1 ? 's' : ''} remaining today
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {!analysisResult ? (
         <motion.div 

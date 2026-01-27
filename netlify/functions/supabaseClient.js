@@ -303,3 +303,220 @@ export async function getIPSignupHistory(ip, hours = 24) {
     return { signups: [], count: 0 };
   }
 }
+
+/**
+ * Get user's current plan
+ */
+export async function getUserPlan(clerkUserId) {
+  if (!supabase) {
+    console.log('[PLAN] Supabase not configured - allowing analysis');
+    return { plan_type: 'free', status: 'active' };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('user_plans')
+      .select('plan_type, status, created_at')
+      .eq('clerk_user_id', clerkUserId)
+      .eq('status', 'active')
+      .limit(1)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('Error getting user plan:', error);
+      // Default to free plan if error
+      return { plan_type: 'free', status: 'active' };
+    }
+
+    // If no plan exists, create default free plan
+    if (!data) {
+      console.log(`[PLAN] Creating default free plan for user ${clerkUserId}`);
+      const { data: newPlan, error: insertError } = await supabase
+        .from('user_plans')
+        .insert([{ clerk_user_id: clerkUserId, plan_type: 'free', status: 'active' }])
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error creating default plan:', insertError);
+        return { plan_type: 'free', status: 'active' };
+      }
+      return newPlan;
+    }
+
+    return data;
+  } catch (err) {
+    console.error('Error in getUserPlan:', err);
+    return { plan_type: 'free', status: 'active' };
+  }
+}
+
+/**
+ * Get today's usage for a user
+ */
+export async function getTodayUsage(clerkUserId) {
+  if (!supabase) {
+    return { analysis_count: 0, usage_date: new Date().toISOString().split('T')[0] };
+  }
+
+  try {
+    const today = new Date().toISOString().split('T')[0];
+
+    const { data, error } = await supabase
+      .from('daily_usage')
+      .select('analysis_count, usage_date')
+      .eq('clerk_user_id', clerkUserId)
+      .eq('usage_date', today)
+      .limit(1)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error getting today usage:', error);
+      return { analysis_count: 0, usage_date: today };
+    }
+
+    return data || { analysis_count: 0, usage_date: today };
+  } catch (err) {
+    console.error('Error in getTodayUsage:', err);
+    return { analysis_count: 0, usage_date: new Date().toISOString().split('T')[0] };
+  }
+}
+
+/**
+ * Check if user can perform analysis based on plan and usage
+ * Returns { allowed: boolean, reason?: string, usage: number, limit: number }
+ */
+export async function checkAnalysisQuota(clerkUserId) {
+  if (!supabase) {
+    return { allowed: true, usage: 0, limit: 1 };
+  }
+
+  try {
+    const plan = await getUserPlan(clerkUserId);
+    const usage = await getTodayUsage(clerkUserId);
+
+    // Determine daily limit based on plan
+    const limits = {
+      'free': 1,
+      'gamer': 50,
+      'wager_org': 99999  // Unlimited
+    };
+
+    const dailyLimit = limits[plan.plan_type] || 1;
+    const hasReachedLimit = usage.analysis_count >= dailyLimit;
+
+    console.log(`[QUOTA CHECK] User: ${clerkUserId}, Plan: ${plan.plan_type}, Usage: ${usage.analysis_count}/${dailyLimit}`);
+
+    if (hasReachedLimit) {
+      return {
+        allowed: false,
+        reason: plan.plan_type === 'free' 
+          ? 'Free plan limited to 1 analysis per day. Upgrade to continue.'
+          : `Daily limit of ${dailyLimit} analyses reached for ${plan.plan_type} plan`,
+        usage: usage.analysis_count,
+        limit: dailyLimit,
+        plan: plan.plan_type
+      };
+    }
+
+    return {
+      allowed: true,
+      usage: usage.analysis_count,
+      limit: dailyLimit,
+      plan: plan.plan_type
+    };
+  } catch (err) {
+    console.error('Error in checkAnalysisQuota:', err);
+    // Fail open - allow if verification fails
+    return { allowed: true, usage: 0, limit: 1 };
+  }
+}
+
+/**
+ * Increment daily usage for a user
+ */
+export async function incrementDailyUsage(clerkUserId) {
+  if (!supabase) {
+    console.log(`[USAGE] Would increment usage for ${clerkUserId}`);
+    return true;
+  }
+
+  try {
+    const today = new Date().toISOString().split('T')[0];
+
+    // Try to update existing record
+    const { data: existing, error: selectError } = await supabase
+      .from('daily_usage')
+      .select('id, analysis_count')
+      .eq('clerk_user_id', clerkUserId)
+      .eq('usage_date', today)
+      .limit(1)
+      .single();
+
+    if (existing) {
+      // Update existing record
+      const { error: updateError } = await supabase
+        .from('daily_usage')
+        .update({ analysis_count: existing.analysis_count + 1, updated_at: new Date().toISOString() })
+        .eq('id', existing.id);
+
+      if (updateError) {
+        console.error('Error incrementing usage:', updateError);
+        return false;
+      }
+    } else {
+      // Create new record for today
+      const { error: insertError } = await supabase
+        .from('daily_usage')
+        .insert([{ 
+          clerk_user_id: clerkUserId, 
+          usage_date: today,
+          analysis_count: 1
+        }]);
+
+      if (insertError && insertError.code !== '23505') { // Ignore unique constraint errors
+        console.error('Error creating usage record:', insertError);
+        return false;
+      }
+    }
+
+    console.log(`[USAGE] Incremented usage for ${clerkUserId}`);
+    return true;
+  } catch (err) {
+    console.error('Error in incrementDailyUsage:', err);
+    return false;
+  }
+}
+
+/**
+ * Log analysis request with details
+ */
+export async function logAnalysis(clerkUserId, fileName, fileSizeMb, verdict, confidence, result) {
+  if (!supabase) {
+    console.log(`[ANALYSIS LOG] User: ${clerkUserId}, File: ${fileName}`);
+    return true;
+  }
+
+  try {
+    const { error } = await supabase
+      .from('analysis_logs')
+      .insert([{
+        clerk_user_id: clerkUserId,
+        file_name: fileName,
+        file_size_mb: fileSizeMb,
+        verdict: verdict,
+        confidence: confidence,
+        analysis_result: result
+      }]);
+
+    if (error) {
+      console.error('Error logging analysis:', error);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error('Error in logAnalysis:', err);
+    return false;
+  }
+}
