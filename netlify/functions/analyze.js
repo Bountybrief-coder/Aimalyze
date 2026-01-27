@@ -1,6 +1,10 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
+import ytdl from 'ytdl-core';
+import ffmpeg from 'fluent-ffmpeg';
+import ffmpegPath from 'ffmpeg-static';
 import {
   getClientIP,
   checkRateLimit,
@@ -48,6 +52,10 @@ export default async (req, context) => {
     const formData = await req.formData();
     const clerkUserId = formData.get('userId');
     let videoType = 'upload';
+    let file = formData.get('file');
+    let youtubeUrl = formData.get('youtubeUrl');
+    let tempVideoPath = null;
+    let tempFrames = [];
 
     // PAID ACCESS ENFORCEMENT
     let planType = 'free';
@@ -130,48 +138,85 @@ export default async (req, context) => {
       console.log(`[PRICING OK] User: ${clerkUserId}, Usage: ${quotaCheck.usage}/${quotaCheck.limit}, Plan: ${quotaCheck.plan}`);
     }
 
-    const file = formData.get('file');
-
-    if (!file) {
-      console.warn(`[VALIDATION] No file provided from IP ${clientIP}`);
-      await logIPAddress(clientIP);
-      await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success: false, verdict: 'BLOCKED: No file' });
-      return new Response(JSON.stringify({ error: 'No file provided' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
+    // --- INPUT HANDLING: File or YouTube ---
+    if (file && file.size > 0) {
+      // Validate file size (max 200MB)
+      const MAX_FILE_SIZE = 200 * 1024 * 1024;
+      if (file.size > MAX_FILE_SIZE) {
+        await logIPAddress(clientIP);
+        await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success: false, verdict: 'BLOCKED: File too large' });
+        return new Response(JSON.stringify({ 
+          error: 'File too large',
+          message: `Maximum file size is 200MB, received ${(file.size / 1024 / 1024).toFixed(2)}MB`
+        }), {
+          status: 413,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+      // Validate file type
+      const allowedTypes = ['video/mp4', 'video/quicktime', 'video/webm'];
+      if (!allowedTypes.includes(file.type)) {
+        await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success: false, verdict: 'BLOCKED: Invalid file type' });
+        return new Response(JSON.stringify({ error: 'Invalid file type' }), { status: 400 });
+      }
+      // Save to temp file
+      const buffer = Buffer.from(await file.arrayBuffer());
+      tempVideoPath = path.join(os.tmpdir(), `aimalyze-upload-${Date.now()}.mp4`);
+      fs.writeFileSync(tempVideoPath, buffer);
+      videoType = 'upload';
+    } else if (youtubeUrl && typeof youtubeUrl === 'string' && youtubeUrl.trim().length > 0) {
+      // Validate YouTube URL
+      if (!ytdl.validateURL(youtubeUrl)) {
+        await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType: 'youtube', success: false, verdict: 'BLOCKED: Invalid YouTube URL' });
+        return new Response(JSON.stringify({ error: 'Invalid YouTube URL' }), { status: 400 });
+      }
+      // Download up to 2 minutes
+      const info = await ytdl.getInfo(youtubeUrl);
+      const lengthSec = parseInt(info.videoDetails.lengthSeconds, 10);
+      if (lengthSec > 120) {
+        await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType: 'youtube', success: false, verdict: 'BLOCKED: YouTube video too long' });
+        return new Response(JSON.stringify({ error: 'YouTube video too long (max 2 minutes)' }), { status: 400 });
+      }
+      tempVideoPath = path.join(os.tmpdir(), `aimalyze-youtube-${Date.now()}.mp4`);
+      await new Promise((resolve, reject) => {
+        ytdl(youtubeUrl, { quality: 'highest', filter: 'audioandvideo' })
+          .pipe(fs.createWriteStream(tempVideoPath))
+          .on('finish', resolve)
+          .on('error', reject);
       });
+      videoType = 'youtube';
+    } else {
+      await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success: false, verdict: 'BLOCKED: No input' });
+      return new Response(JSON.stringify({ error: 'No video file or YouTube link provided' }), { status: 400 });
     }
 
-    // Validate file size (max 500MB)
-    const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
-    if (file.size > MAX_FILE_SIZE) {
-      console.warn(`[VALIDATION] File too large from IP ${clientIP}: ${file.size} bytes`);
-      await logIPAddress(clientIP);
-      await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success: false, verdict: 'BLOCKED: File too large' });
-      return new Response(JSON.stringify({ 
-        error: 'File too large',
-        message: `Maximum file size is 500MB, received ${(file.size / 1024 / 1024).toFixed(2)}MB`
-      }), {
-        status: 413,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    // --- FRAME EXTRACTION ---
+    ffmpeg.setFfmpegPath(ffmpegPath);
+    const frameDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aimalyze-frames-'));
+    await new Promise((resolve, reject) => {
+      ffmpeg(tempVideoPath)
+        .outputOptions([
+          '-vf', 'fps=0.5,scale=512:-1', // 1 frame every 2s, width 512px
+          '-qscale:v', '2'
+        ])
+        .output(path.join(frameDir, 'frame-%02d.jpg'))
+        .on('end', resolve)
+        .on('error', reject)
+        .run();
+    });
+    // Collect up to 20 frames
+    tempFrames = fs.readdirSync(frameDir)
+      .filter(f => f.endsWith('.jpg'))
+      .sort()
+      .slice(0, 20)
+      .map(f => fs.readFileSync(path.join(frameDir, f)));
+    if (tempFrames.length < 1) {
+      await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success: false, verdict: 'BLOCKED: No frames extracted' });
+      return new Response(JSON.stringify({ error: 'Failed to extract frames from video' }), { status: 500 });
     }
 
-    console.log(`[PROCESSING] Starting analysis for ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB) from IP ${clientIP}`);
-
-    // Log the IP address for this successful analysis request
-    await logIPAddress(clientIP);
-
-    // Convert file to base64
-    const buffer = await file.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString('base64');
-
-    // Determine MIME type
-    const mimeType = file.type || 'video/mp4';
-
-    // Call Gemini API with vision capabilities
+    // Call Gemini Vision API with all frames
     const model = client.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
     const prompt = `You are an advanced esports anti-cheat analyst. Analyze this gameplay footage to determine if the player is using any unfair devices or unauthorized input methods (Cronus Zen, Cronus Max, Titan One, Titan Two, XIM Apex, XIM Matrix, mouse & keyboard emulators, strike packs, macros, anti-recoil scripts, etc).
 
 Look for:
@@ -191,30 +236,26 @@ Pay special attention to:
 - Recoil patterns that are too perfect
 - Signs of hardware mods or input spoofing
 
-Respond ONLY with a JSON object in this exact format:
+Compare controller overlay (if visible) to movement. Respond ONLY with a JSON object in this exact format:
 {
-  "verdict": "Cheating Likely" | "Clean Gameplay" | "Suspicious" | "Inconclusive",
+  "verdict": "Likely Cheating" | "Clean" | "Suspicious" | "Inconclusive",
   "confidence": "<percent, e.g. 91%>",
-  "summary": "<1-2 sentence summary of the evidence and reasoning>"
+  "reasoning": "<1-2 sentence summary of the evidence and reasoning>"
 }
 
 Be extremely thorough, objective, and do not guess. If unsure, use "Inconclusive" with a low confidence.`;
 
+    // Prepare frames for Gemini
+    const geminiInputs = tempFrames.map(buf => ({ inlineData: { mimeType: 'image/jpeg', data: buf.toString('base64') } }));
+    geminiInputs.push(prompt);
+
     let result = null;
     let verdict = null;
     let confidence = null;
-    let summary = null;
+    let reasoning = null;
     let success = false;
     try {
-      const response = await model.generateContent([
-        {
-          inlineData: {
-            mimeType: mimeType,
-            data: base64
-          }
-        },
-        prompt
-      ]);
+      const response = await model.generateContent(geminiInputs);
       const text = response.response.text();
       console.log(`[API RESPONSE] Received response from Gemini API (${text.length} chars)`);
       // Extract JSON from response
@@ -225,9 +266,9 @@ Be extremely thorough, objective, and do not guess. If unsure, use "Inconclusive
       result = JSON.parse(jsonMatch[0]);
       verdict = result.verdict || null;
       confidence = result.confidence || null;
-      summary = result.summary || null;
+      reasoning = result.reasoning || null;
       success = true;
-      console.log(`[SUCCESS] Analysis complete for IP ${clientIP}. Verdict: ${verdict}, Confidence: ${confidence}, Summary: ${summary}`);
+      console.log(`[SUCCESS] Analysis complete for IP ${clientIP}. Verdict: ${verdict}, Confidence: ${confidence}, Reasoning: ${reasoning}`);
     } catch (err) {
       await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success: false, verdict: 'FAIL: Gemini error' });
       return new Response(JSON.stringify({ 
@@ -241,8 +282,7 @@ Be extremely thorough, objective, and do not guess. If unsure, use "Inconclusive
 
     // Log analysis and increment usage if user is logged in
     if (clerkUserId) {
-      const fileSizeMb = (file.size / 1024 / 1024).toFixed(2);
-      await logAnalysis(clerkUserId, file.name, fileSizeMb, verdict, confidence, JSON.stringify(result));
+      await logAnalysis(clerkUserId, videoType === 'upload' && file ? file.name : (youtubeUrl || 'YouTube'), 0, verdict, confidence, JSON.stringify(result));
       if (planType === 'free') {
         // Mark free scan as used
         await supabase.from('scan_usage').insert({
@@ -274,10 +314,18 @@ Be extremely thorough, objective, and do not guess. If unsure, use "Inconclusive
         verdict: `${verdict} – ${confidence}`,
         timestamp: new Date().toISOString()
       });
-      console.log(`[USAGE LOGGED] User: ${clerkUserId}, File: ${file.name}, Plan: ${planType}`);
+      console.log(`[USAGE LOGGED] User: ${clerkUserId}, Input: ${videoType}, Plan: ${planType}`);
     }
     // Log usage for all attempts (success or fail)
     await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success, verdict });
+
+    // Clean up temp files
+    try {
+      if (tempVideoPath && fs.existsSync(tempVideoPath)) fs.unlinkSync(tempVideoPath);
+      if (tempFrames && tempFrames.length > 0) {
+        fs.rmSync(frameDir, { recursive: true, force: true });
+      }
+    } catch (e) { /* ignore */ }
 
     // Periodically clean up old logs
     if (Math.random() < 0.1) { // 10% chance to run cleanup
@@ -287,7 +335,7 @@ Be extremely thorough, objective, and do not guess. If unsure, use "Inconclusive
     return new Response(JSON.stringify({
       verdict,
       confidence,
-      summary,
+      reasoning,
       ...result
     }), {
       status: 200,
