@@ -10,6 +10,22 @@ import {
   supabase
 } from './supabaseClient.js';
 
+// Helper to log usage for every scan attempt
+async function logUsageAttempt({ userId, ip, videoType, success, verdict }) {
+  try {
+    await supabase.from('usage_logs').insert({
+      user_id: userId || null,
+      ip_address: ip,
+      video_type: videoType,
+      success,
+      verdict: verdict || null,
+      timestamp: new Date().toISOString()
+    });
+  } catch (e) {
+    console.error('Failed to log usage attempt:', e);
+  }
+}
+
 const client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Rate limit configuration
@@ -31,6 +47,7 @@ export default async (req, context) => {
     // Get Clerk user ID from request (sent by frontend)
     const formData = await req.formData();
     const clerkUserId = formData.get('userId');
+    let videoType = 'upload';
 
     // PAID ACCESS ENFORCEMENT
     let planType = 'free';
@@ -57,6 +74,7 @@ export default async (req, context) => {
           .eq('user_id', clerkUserId)
           .eq('used_free_scan', true);
         if (usageRows && usageRows.length > 0) {
+          await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success: false, verdict: 'BLOCKED: Free scan used' });
           return new Response(
             JSON.stringify({ error: 'Upgrade required', message: 'Your free scan has already been used. Please upgrade to continue.' }),
             { status: 403, headers: { 'Content-Type': 'application/json' } }
@@ -67,15 +85,11 @@ export default async (req, context) => {
 
     // Check rate limit before processing (IP-based, for anonymous users)
     const rateLimitCheck = await checkRateLimit(clientIP, RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW_HOURS);
-    
     if (rateLimitCheck.limited) {
       console.warn(`[RATE LIMIT] IP ${clientIP} exceeded limit. Count: ${rateLimitCheck.count}, Remaining: ${rateLimitCheck.remaining}`);
-      
       const resetTime = rateLimitCheck.resetTime ? rateLimitCheck.resetTime.toISOString() : 'unknown';
-      
-      // Log the rate limit violation
       await logIPAddress(clientIP);
-      
+      await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success: false, verdict: 'BLOCKED: Rate limit' });
       return new Response(JSON.stringify({
         error: 'Rate limit exceeded',
         message: `Maximum ${RATE_LIMIT_REQUESTS} analysis requests per ${RATE_LIMIT_WINDOW_HOURS} hours exceeded`,
@@ -121,6 +135,7 @@ export default async (req, context) => {
     if (!file) {
       console.warn(`[VALIDATION] No file provided from IP ${clientIP}`);
       await logIPAddress(clientIP);
+      await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success: false, verdict: 'BLOCKED: No file' });
       return new Response(JSON.stringify({ error: 'No file provided' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
@@ -132,6 +147,7 @@ export default async (req, context) => {
     if (file.size > MAX_FILE_SIZE) {
       console.warn(`[VALIDATION] File too large from IP ${clientIP}: ${file.size} bytes`);
       await logIPAddress(clientIP);
+      await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success: false, verdict: 'BLOCKED: File too large' });
       return new Response(JSON.stringify({ 
         error: 'File too large',
         message: `Maximum file size is 500MB, received ${(file.size / 1024 / 1024).toFixed(2)}MB`
@@ -175,34 +191,40 @@ Respond with a JSON object in this exact format:
 
 Be thorough but fair in your analysis.`;
 
-    const response = await model.generateContent([
-      {
-        inlineData: {
-          mimeType: mimeType,
-          data: base64
-        }
-      },
-      prompt
-    ]);
-
-    const text = response.response.text();
-    console.log(`[API RESPONSE] Received response from Gemini API (${text.length} chars)`);
-    
-    // Extract JSON from response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.error(`[API ERROR] Failed to parse JSON from Gemini response from IP ${clientIP}`);
+    let result = null;
+    let verdict = null;
+    let success = false;
+    try {
+      const response = await model.generateContent([
+        {
+          inlineData: {
+            mimeType: mimeType,
+            data: base64
+          }
+        },
+        prompt
+      ]);
+      const text = response.response.text();
+      console.log(`[API RESPONSE] Received response from Gemini API (${text.length} chars)`);
+      // Extract JSON from response
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('Failed to parse Gemini response');
+      }
+      result = JSON.parse(jsonMatch[0]);
+      verdict = result.verdict ? `${result.verdict} – ${result.confidence || '?'}%` : null;
+      success = true;
+      console.log(`[SUCCESS] Analysis complete for IP ${clientIP}. Verdict: ${result.verdict}, Confidence: ${result.confidence}%`);
+    } catch (err) {
+      await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success: false, verdict: 'FAIL: Gemini error' });
       return new Response(JSON.stringify({ 
-        error: 'Failed to parse Gemini response',
-        rawResponse: text 
+        error: 'Failed to analyze video',
+        details: err.message 
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       });
     }
-
-    const result = JSON.parse(jsonMatch[0]);
-    console.log(`[SUCCESS] Analysis complete for IP ${clientIP}. Verdict: ${result.verdict}, Confidence: ${result.confidence}%`);
 
     // Log analysis and increment usage if user is logged in
     if (clerkUserId) {
@@ -232,6 +254,8 @@ Be thorough but fair in your analysis.`;
       }
       console.log(`[USAGE LOGGED] User: ${clerkUserId}, File: ${file.name}, Plan: ${planType}`);
     }
+    // Log usage for all attempts (success or fail)
+    await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success, verdict });
 
     // Periodically clean up old logs
     if (Math.random() < 0.1) { // 10% chance to run cleanup
