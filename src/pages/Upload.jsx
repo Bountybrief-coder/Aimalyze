@@ -131,8 +131,8 @@ export default function Upload() {
         transition={{ delay: 0.1, duration: 0.5 }}
         className="max-w-2xl mx-auto text-center mb-12"
       >
-        <h1 className="text-5xl font-bold mb-2 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent drop-shadow-lg">🎮 Gameplay Analysis</h1>
-        <p className="text-lg text-gray-300">Upload a gameplay video to analyze for potential cheating</p>
+        <h1 className="text-4xl sm:text-5xl font-bold mb-2 bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent drop-shadow-lg">🎮 Gameplay Analysis</h1>
+        <p className="text-base sm:text-lg text-gray-300">Upload a gameplay video to analyze for potential cheating</p>
       </motion.div>
 
       {!analysisResult ? (
@@ -145,7 +145,7 @@ export default function Upload() {
           <motion.div
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
-            className={`border-2 border-dashed rounded-lg p-12 text-center transition-all duration-300 cursor-pointer ${
+            className={`border-2 border-dashed rounded-lg p-8 sm:p-12 text-center transition-all duration-300 cursor-pointer ${
               dragActive
                 ? 'border-neon-pink bg-pink-900/20 shadow-lg shadow-pink-500/50 scale-105'
                 : 'border-neon-cyan bg-gray-900 hover:border-neon-cyan/80 hover:shadow-lg hover:shadow-cyan-500/20'
@@ -158,13 +158,13 @@ export default function Upload() {
             <motion.div 
               animate={{ y: dragActive ? -5 : 0 }}
               transition={{ duration: 0.2 }}
-              className="text-5xl mb-4"
+              className="text-4xl sm:text-5xl mb-4"
             >
               🎬
             </motion.div>
-            <h2 className="text-2xl mb-2 text-white">Drag and drop your gameplay video here</h2>
-            <p className="text-gray-400 mb-4">or</p>
-            <label htmlFor="fileInput" className="inline-block px-6 py-3 bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50 text-gray-950 rounded-lg font-bold cursor-pointer transition-all duration-300 hover:scale-105">
+            <h2 className="text-lg sm:text-2xl mb-2 text-white">Drag and drop your gameplay video here</h2>
+            <p className="text-gray-400 mb-4 text-sm sm:text-base">or</p>
+            <label htmlFor="fileInput" className="inline-block px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50 text-gray-950 rounded-lg font-bold text-sm sm:text-base cursor-pointer transition-all duration-300 hover:scale-105">
               Browse Files
             </label>
             <input
@@ -174,7 +174,7 @@ export default function Upload() {
               onChange={handleFileChange}
               className="hidden"
             />
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="mt-4 text-xs sm:text-sm text-gray-500">
               Supported formats: MP4, MOV, WebM (Max 500MB)
             </p>
           </motion.div>
@@ -189,13 +189,13 @@ export default function Upload() {
               <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">Selected File</h3>
               <motion.div 
                 whileHover={{ scale: 1.02, borderColor: 'rgb(0, 255, 198)' }}
-                className="flex justify-between items-center p-4 bg-gray-950 rounded-lg mb-6 border border-neon-cyan/20 transition-colors"
+                className="flex justify-between items-center flex-col sm:flex-row gap-4 sm:gap-0 p-4 bg-gray-950 rounded-lg mb-6 border border-neon-cyan/20 transition-colors"
               >
-                <div className="flex items-center gap-2 text-white">
-                  <span className="text-2xl">📄</span>
-                  <span>{selectedFile.name}</span>
+                <div className="flex items-center gap-2 text-white text-sm sm:text-base">
+                  <span className="text-xl sm:text-2xl">📄</span>
+                  <span className="truncate">{selectedFile.name}</span>
                 </div>
-                <div className="text-gray-400 text-sm">
+                <div className="text-gray-400 text-xs sm:text-sm whitespace-nowrap">
                   {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                 </div>
               </motion.div>
@@ -205,7 +205,7 @@ export default function Upload() {
                 disabled={isAnalyzing}
                 whileHover={!isAnalyzing ? { scale: 1.05 } : {}}
                 whileTap={!isAnalyzing ? { scale: 0.95 } : {}}
-                className={`w-full py-3 px-4 font-bold rounded-lg text-lg flex items-center justify-center gap-2 transition-all ${
+                className={`w-full py-3 px-4 font-bold rounded-lg text-base sm:text-lg flex items-center justify-center gap-2 transition-all ${
                   isAnalyzing
                     ? 'bg-gradient-to-r from-neon-cyan to-neon-pink/60 cursor-not-allowed opacity-60'
                     : 'bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50'

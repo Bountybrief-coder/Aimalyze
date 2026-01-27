@@ -37,7 +37,7 @@ export default function Dashboard() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gray-950 text-white p-8"
+      className="min-h-screen bg-gray-950 text-white p-4 sm:p-8"
     >
       <motion.div 
         initial={{ y: -20, opacity: 0 }}
@@ -45,15 +45,15 @@ export default function Dashboard() {
         transition={{ delay: 0.1, duration: 0.5 }}
         className="max-w-6xl mx-auto mb-12"
       >
-        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">📊 Your Dashboard</h1>
-        <p className="text-lg text-gray-400">Manage and analyze your video uploads</p>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-2 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">📊 Your Dashboard</h1>
+        <p className="text-base sm:text-lg text-gray-400">Manage and analyze your video uploads</p>
       </motion.div>
 
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2, staggerChildren: 0.1 }}
-        className="max-w-6xl mx-auto mb-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        className="max-w-6xl mx-auto mb-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
       >
         {[
           { label: 'Total Videos', value: '3', emoji: '📹' },
@@ -82,16 +82,16 @@ export default function Dashboard() {
         transition={{ delay: 0.3, duration: 0.5 }}
         className="max-w-6xl mx-auto mb-12 bg-gray-900 border border-neon-cyan/30 rounded-lg p-8 shadow-lg shadow-cyan-500/10"
       >
-        <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">Your Videos</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">Your Videos</h2>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-sm sm:text-base">
             <thead className="bg-gray-950">
               <tr>
-                <th className="px-4 py-3 text-left font-bold border-b-2 border-neon-cyan/30 text-gray-300">Title</th>
-                <th className="px-4 py-3 text-left font-bold border-b-2 border-neon-cyan/30 text-gray-300">Upload Date</th>
-                <th className="px-4 py-3 text-left font-bold border-b-2 border-neon-cyan/30 text-gray-300">Duration</th>
-                <th className="px-4 py-3 text-left font-bold border-b-2 border-neon-cyan/30 text-gray-300">Status</th>
-                <th className="px-4 py-3 text-left font-bold border-b-2 border-neon-cyan/30 text-gray-300">Actions</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs sm:text-sm font-bold border-b-2 border-neon-cyan/30 text-gray-300">Title</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs sm:text-sm font-bold border-b-2 border-neon-cyan/30 text-gray-300">Upload Date</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs sm:text-sm font-bold border-b-2 border-neon-cyan/30 text-gray-300">Duration</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs sm:text-sm font-bold border-b-2 border-neon-cyan/30 text-gray-300">Status</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs sm:text-sm font-bold border-b-2 border-neon-cyan/30 text-gray-300">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -104,14 +104,14 @@ export default function Dashboard() {
                   whileHover={{ backgroundColor: 'rgba(0, 255, 198, 0.05)', x: 4 }}
                   className="border-b border-gray-800 transition-colors"
                 >
-                  <td className="px-4 py-3 text-gray-400">{video.title}</td>
-                  <td className="px-4 py-3 text-gray-400">{video.uploadDate}</td>
-                  <td className="px-4 py-3 text-gray-400">{video.duration}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 sm:px-4 py-3 text-gray-400 text-xs sm:text-sm truncate">{video.title}</td>
+                  <td className="px-2 sm:px-4 py-3 text-gray-400 text-xs sm:text-sm">{video.uploadDate}</td>
+                  <td className="px-2 sm:px-4 py-3 text-gray-400 text-xs sm:text-sm">{video.duration}</td>
+                  <td className="px-2 sm:px-4 py-3">
                     <motion.span 
                       initial={{ scale: 0.9 }}
                       animate={{ scale: 1 }}
-                      className={`px-3 py-1 rounded-md font-bold text-sm inline-block ${
+                      className={`px-2 sm:px-3 py-1 rounded-md font-bold text-xs sm:text-sm inline-block ${
                         video.status === 'analyzed' 
                           ? 'bg-green-600/30 text-green-400' 
                           : 'bg-amber-600/30 text-amber-400'
@@ -120,21 +120,23 @@ export default function Dashboard() {
                       {video.status === 'analyzed' ? '✓ Analyzed' : '⏳ Analyzing'}
                     </motion.span>
                   </td>
-                  <td className="px-4 py-3">
-                    <motion.button 
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-3 py-1 bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50 text-gray-950 font-bold rounded-md text-sm mr-2 transition-all"
-                    >
+                  <td className="px-2 sm:px-4 py-3">
+                    <div className="flex flex-col gap-1">
+                      <motion.button 
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-2 sm:px-3 py-1 bg-gradient-to-r from-neon-cyan to-neon-pink hover:shadow-lg hover:shadow-cyan-500/50 text-gray-950 font-bold rounded-md text-xs sm:text-sm transition-all"
+                      >
                       View
                     </motion.button>
                     <motion.button 
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="px-3 py-1 border border-red-500/50 text-red-400 hover:bg-red-500/10 font-bold rounded-md text-sm transition-all"
+                      className="px-2 sm:px-3 py-1 border border-red-500/50 text-red-400 hover:bg-red-500/10 font-bold rounded-md text-xs sm:text-sm transition-all"
                     >
                       Delete
                     </motion.button>
+                    </div>
                   </td>
                 </motion.tr>
               ))}
@@ -148,7 +150,7 @@ export default function Dashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.5 }}
       >
-        <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">Recent Insights</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold mb-6 bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">Recent Insights</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
             { title: 'Most Common Topics', value: 'Technology, AI, Machine Learning' },
