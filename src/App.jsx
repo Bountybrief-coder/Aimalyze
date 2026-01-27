@@ -1,5 +1,7 @@
 import { Routes, Route, Link } from 'react-router-dom'
 import { SignedIn, SignedOut, SignIn, UserButton } from '@clerk/clerk-react'
+import { AiOutlineDashboard, AiOutlineCloudUpload, AiOutlineDollarCircle, AiOutlineMenu, AiOutlineClose } from 'react-icons/ai'
+import { useState } from 'react'
 
 // Pages
 import Landing from './pages/Landing.jsx'
@@ -8,6 +10,14 @@ import Upload from './pages/Upload.jsx'
 import Pricing from './pages/Pricing.jsx'
 
 export default function App() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const navLinks = [
+    { path: '/dashboard', label: 'Dashboard', icon: AiOutlineDashboard },
+    { path: '/upload', label: 'Upload', icon: AiOutlineCloudUpload },
+    { path: '/pricing', label: 'Pricing', icon: AiOutlineDollarCircle },
+  ]
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       {/* Navigation Bar */}
@@ -17,34 +27,27 @@ export default function App() {
             {/* Logo */}
             <Link 
               to="/" 
-              className="text-2xl font-bold bg-gradient-to-r from-neon-cyan via-neon-pink to-neon-purple bg-clip-text text-transparent hover:drop-shadow-[0_0_8px_rgba(255,0,128,0.6)] transition-all duration-300"
+              className="text-2xl font-bold bg-gradient-to-r from-neon-cyan via-neon-pink to-neon-purple bg-clip-text text-transparent hover:drop-shadow-[0_0_8px_rgba(255,0,128,0.6)] transition-all duration-300 flex items-center gap-2"
             >
-              🎯 Aimalyze
+              <span>🎯</span> Aimalyze
             </Link>
 
-            {/* Navigation Links */}
-            <div className="hidden md:flex items-center gap-6">
-              <Link 
-                to="/dashboard" 
-                className="text-gray-300 hover:text-neon-cyan transition-all duration-200 font-medium relative group"
-              >
-                Dashboard
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-neon-cyan to-neon-pink group-hover:w-full transition-all duration-300"></span>
-              </Link>
-              <Link 
-                to="/upload" 
-                className="text-gray-300 hover:text-neon-cyan transition-all duration-200 font-medium relative group"
-              >
-                Upload
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-neon-cyan to-neon-pink group-hover:w-full transition-all duration-300"></span>
-              </Link>
-              <Link 
-                to="/pricing" 
-                className="text-gray-300 hover:text-neon-cyan transition-all duration-200 font-medium relative group"
-              >
-                Pricing
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-neon-cyan to-neon-pink group-hover:w-full transition-all duration-300"></span>
-              </Link>
+            {/* Desktop Navigation Links */}
+            <div className="hidden md:flex items-center gap-8">
+              {navLinks.map((link) => {
+                const Icon = link.icon
+                return (
+                  <Link 
+                    key={link.path}
+                    to={link.path} 
+                    className="text-gray-300 hover:text-neon-cyan transition-all duration-200 font-medium relative group flex items-center gap-2"
+                  >
+                    <Icon className="text-lg group-hover:drop-shadow-[0_0_8px_rgba(0,255,198,0.5)]" />
+                    {link.label}
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-neon-cyan to-neon-pink group-hover:w-full transition-all duration-300"></span>
+                  </Link>
+                )
+              })}
               
               {/* Auth Button */}
               <SignedIn>
@@ -53,7 +56,7 @@ export default function App() {
                     appearance={{
                       elements: {
                         rootBox: "w-10 h-10",
-                        avatarBox: "w-10 h-10"
+                        avatarBox: "w-10 h-10 rounded-full border-2 border-neon-cyan/50 hover:border-neon-cyan transition-all"
                       }
                     }}
                   />
@@ -61,13 +64,51 @@ export default function App() {
               </SignedIn>
             </div>
 
-            {/* Mobile Menu (simplified) */}
-            <div className="md:hidden">
+            {/* Mobile Menu Button */}
+            <div className="md:hidden flex items-center gap-4">
               <SignedIn>
-                <UserButton />
+                <UserButton 
+                  appearance={{
+                    elements: {
+                      rootBox: "w-8 h-8",
+                      avatarBox: "w-8 h-8 rounded-full border border-neon-cyan/50"
+                    }
+                  }}
+                />
               </SignedIn>
+              
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="text-neon-cyan hover:text-neon-pink transition-colors p-2 rounded-lg hover:bg-gray-900/50"
+              >
+                {mobileMenuOpen ? (
+                  <AiOutlineClose size={24} />
+                ) : (
+                  <AiOutlineMenu size={24} />
+                )}
+              </button>
             </div>
           </div>
+
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className="md:hidden pb-4 space-y-2 border-t border-neon-cyan/10 mt-4 pt-4">
+              {navLinks.map((link) => {
+                const Icon = link.icon
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-gray-300 hover:text-neon-cyan hover:bg-gray-900/50 rounded-lg transition-all duration-200 font-medium group"
+                  >
+                    <Icon className="text-lg group-hover:drop-shadow-[0_0_8px_rgba(0,255,198,0.5)]" />
+                    {link.label}
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </div>
       </nav>
 
