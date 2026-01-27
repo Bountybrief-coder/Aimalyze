@@ -172,27 +172,38 @@ export default async (req, context) => {
     // Call Gemini API with vision capabilities
     const model = client.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    const prompt = `You are a professional gaming analyst. Analyze this gameplay video for signs of cheating or unfair advantages.
+    const prompt = `You are an advanced esports anti-cheat analyst. Analyze this gameplay footage to determine if the player is using any unfair devices or unauthorized input methods (Cronus Zen, Cronus Max, Titan One, Titan Two, XIM Apex, XIM Matrix, mouse & keyboard emulators, strike packs, macros, anti-recoil scripts, etc).
 
-Please analyze for:
-1. Aimbot or unnatural targeting patterns
-2. Recoil control manipulation
-3. Unusual reaction times or inhuman tracking
-4. Wall hacking or game state manipulation
-5. Any other unfair advantages
+Look for:
+- Cronus Zen or Cronus Max usage
+- Titan One/Titan Two mods
+- XIM Apex or XIM Matrix (mouse/keyboard emulation)
+- Keyboard and mouse on console gameplay
+- Unnatural flicking or auto-tracking (aimbot)
+- Rapid recoil compensation (anti-recoil scripts)
+- Perfect input timing (strike packs, macros)
+- Input method mismatches (controller overlay vs actual aim behavior)
 
-Respond with a JSON object in this exact format:
+Pay special attention to:
+- Micro-movements and frame-by-frame aim precision
+- Inconsistent movement that doesn't match human/controller behavior
+- Mouse-like aim on console
+- Recoil patterns that are too perfect
+- Signs of hardware mods or input spoofing
+
+Respond ONLY with a JSON object in this exact format:
 {
-  "cheatingDetected": true/false,
-  "confidence": <0-100>,
-  "verdict": "<short verdict like 'Cheating Likely' or 'Clean Gameplay'>",
-  "explanation": "<detailed analysis of what you found>"
+  "verdict": "Cheating Likely" | "Clean Gameplay" | "Suspicious" | "Inconclusive",
+  "confidence": "<percent, e.g. 91%>",
+  "summary": "<1-2 sentence summary of the evidence and reasoning>"
 }
 
-Be thorough but fair in your analysis.`;
+Be extremely thorough, objective, and do not guess. If unsure, use "Inconclusive" with a low confidence.`;
 
     let result = null;
     let verdict = null;
+    let confidence = null;
+    let summary = null;
     let success = false;
     try {
       const response = await model.generateContent([
@@ -212,9 +223,11 @@ Be thorough but fair in your analysis.`;
         throw new Error('Failed to parse Gemini response');
       }
       result = JSON.parse(jsonMatch[0]);
-      verdict = result.verdict ? `${result.verdict} – ${result.confidence || '?'}%` : null;
+      verdict = result.verdict || null;
+      confidence = result.confidence || null;
+      summary = result.summary || null;
       success = true;
-      console.log(`[SUCCESS] Analysis complete for IP ${clientIP}. Verdict: ${result.verdict}, Confidence: ${result.confidence}%`);
+      console.log(`[SUCCESS] Analysis complete for IP ${clientIP}. Verdict: ${verdict}, Confidence: ${confidence}, Summary: ${summary}`);
     } catch (err) {
       await logUsageAttempt({ userId: clerkUserId, ip: clientIP, videoType, success: false, verdict: 'FAIL: Gemini error' });
       return new Response(JSON.stringify({ 
@@ -229,7 +242,7 @@ Be thorough but fair in your analysis.`;
     // Log analysis and increment usage if user is logged in
     if (clerkUserId) {
       const fileSizeMb = (file.size / 1024 / 1024).toFixed(2);
-      await logAnalysis(clerkUserId, file.name, fileSizeMb, result.verdict, result.confidence, JSON.stringify(result));
+      await logAnalysis(clerkUserId, file.name, fileSizeMb, verdict, confidence, JSON.stringify(result));
       if (planType === 'free') {
         // Mark free scan as used
         await supabase.from('scan_usage').insert({
@@ -252,6 +265,15 @@ Be thorough but fair in your analysis.`;
           last_scan_at: new Date().toISOString()
         });
       }
+      // Log to usage_logs as well
+      await supabase.from('usage_logs').insert({
+        user_id: clerkUserId,
+        ip_address: clientIP,
+        video_type: videoType,
+        success: true,
+        verdict: `${verdict} – ${confidence}`,
+        timestamp: new Date().toISOString()
+      });
       console.log(`[USAGE LOGGED] User: ${clerkUserId}, File: ${file.name}, Plan: ${planType}`);
     }
     // Log usage for all attempts (success or fail)
@@ -262,7 +284,12 @@ Be thorough but fair in your analysis.`;
       cleanupOldLogs(7);
     }
 
-    return new Response(JSON.stringify(result), {
+    return new Response(JSON.stringify({
+      verdict,
+      confidence,
+      summary,
+      ...result
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });

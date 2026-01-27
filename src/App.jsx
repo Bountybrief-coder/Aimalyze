@@ -27,9 +27,18 @@ export default function App() {
             {/* Logo */}
             <Link 
               to="/" 
-              className="text-2xl font-bold bg-gradient-to-r from-neon-cyan via-neon-pink to-neon-purple bg-clip-text text-transparent hover:drop-shadow-[0_0_8px_rgba(255,0,128,0.6)] transition-all duration-300 flex items-center gap-2"
+              className="flex items-center gap-3 min-w-[40px]"
+              aria-label="Aimalyze Home"
             >
-              <span>🎯</span> Aimalyze
+              <img 
+                src="/logo.png" 
+                alt="Aimalyze logo: AI brain with eye" 
+                className="h-10 w-auto sm:h-12 md:h-14 object-contain" 
+                style={{ maxWidth: '56px' }}
+                loading="eager"
+                draggable="false"
+              />
+              <span className="hidden sm:inline text-2xl font-bold bg-gradient-to-r from-neon-cyan via-neon-pink to-neon-purple bg-clip-text text-transparent hover:drop-shadow-[0_0_8px_rgba(255,0,128,0.6)] transition-all duration-300">Aimalyze</span>
             </Link>
 
             {/* Desktop Navigation Links */}
