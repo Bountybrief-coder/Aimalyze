@@ -329,30 +329,4 @@ export default function Landing() {
     </div>
   )
 }
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 text-center hover:border-blue-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/10">
-              <div className="text-4xl mb-4">🎬</div>
-              <h3 className="text-xl font-bold mb-2">Video Upload</h3>
-              <p className="text-gray-400">Upload videos in any format and get instant AI analysis</p>
-            </div>
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 text-center hover:border-blue-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/10">
-              <div className="text-4xl mb-4">🤖</div>
-              <h3 className="text-xl font-bold mb-2">AI-Powered</h3>
-              <p className="text-gray-400">Powered by Google Gemini for accurate insights</p>
-            </div>
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 text-center hover:border-blue-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/10">
-              <div className="text-4xl mb-4">📊</div>
-              <h3 className="text-xl font-bold mb-2">Analytics Dashboard</h3>
-              <p className="text-gray-400">View detailed analytics and summaries of your videos</p>
-            </div>
-            <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 text-center hover:border-blue-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/10">
-              <div className="text-4xl mb-4">⚡</div>
-              <h3 className="text-xl font-bold mb-2">Fast Processing</h3>
-              <p className="text-gray-400">Get results in seconds with our optimized processing</p>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-  )
-}
 
