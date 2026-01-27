@@ -5,59 +5,69 @@ export default function Landing() {
   const navigate = useNavigate()
 
   return (
-    <div style={containerStyle}>
-      <section style={heroStyle}>
-        <h1 style={headingStyle}>🎯 Welcome to Aimalyze</h1>
-        <p style={subtitleStyle}>AI-powered video analytics at your fingertips</p>
-        <p style={descriptionStyle}>
-          Upload your videos and let our AI analyze them. Get insights, summaries, 
-          and detailed analytics powered by Google Gemini.
-        </p>
+    <div className="bg-gray-950">
+      {/* Hero Section */}
+      <section className="min-h-[calc(100vh-64px)] flex flex-col items-center justify-center px-4 py-20">
+        <div className="text-center max-w-4xl mx-auto">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            🎯 Welcome to Aimalyze
+          </h1>
+          <p className="text-2xl md:text-3xl text-gray-300 mb-6">
+            AI-powered video analytics at your fingertips
+          </p>
+          <p className="text-lg text-gray-400 mb-8 leading-relaxed max-w-2xl mx-auto">
+            Upload your videos and let our AI analyze them. Get insights, summaries, 
+            and detailed analytics powered by Google Gemini.
+          </p>
 
-        <div style={ctaContainerStyle}>
-          <SignedIn>
-            <button 
-              onClick={() => navigate('/upload')} 
-              style={primaryButtonStyle}
-            >
-              Start Analyzing 🚀
-            </button>
-            <button 
-              onClick={() => navigate('/dashboard')} 
-              style={secondaryButtonStyle}
-            >
-              View Dashboard 📊
-            </button>
-          </SignedIn>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <SignedIn>
+              <button 
+                onClick={() => navigate('/upload')} 
+                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-200 transform hover:scale-105"
+              >
+                Start Analyzing 🚀
+              </button>
+              <button 
+                onClick={() => navigate('/dashboard')} 
+                className="px-8 py-3 border-2 border-blue-500 text-blue-400 font-bold rounded-lg hover:bg-blue-500/10 transition-all duration-200"
+              >
+                View Dashboard 📊
+              </button>
+            </SignedIn>
 
-          <SignedOut>
-            <p style={signInPromptStyle}>Sign in to get started with Aimalyze</p>
-          </SignedOut>
+            <SignedOut>
+              <p className="text-lg text-gray-400">Sign in to get started with Aimalyze</p>
+            </SignedOut>
+          </div>
         </div>
       </section>
 
-      <section style={featuresStyle}>
-        <h2 style={featuresHeadingStyle}>Features</h2>
-        <div style={featureGridStyle}>
-          <div style={featureCardStyle}>
-            <div style={featureIconStyle}>🎬</div>
-            <h3 style={featureTitleStyle}>Video Upload</h3>
-            <p style={featureTextStyle}>Upload videos in any format and get instant AI analysis</p>
-          </div>
-          <div style={featureCardStyle}>
-            <div style={featureIconStyle}>🤖</div>
-            <h3 style={featureTitleStyle}>AI-Powered</h3>
-            <p style={featureTextStyle}>Powered by Google Gemini for accurate insights</p>
-          </div>
-          <div style={featureCardStyle}>
-            <div style={featureIconStyle}>📊</div>
-            <h3 style={featureTitleStyle}>Analytics Dashboard</h3>
-            <p style={featureTextStyle}>View detailed analytics and summaries of your videos</p>
-          </div>
-          <div style={featureCardStyle}>
-            <div style={featureIconStyle}>⚡</div>
-            <h3 style={featureTitleStyle}>Fast Processing</h3>
-            <p style={featureTextStyle}>Get results in seconds with our optimized processing</p>
+      {/* Features Section */}
+      <section className="py-20 px-4 bg-gradient-to-b from-gray-950 to-gray-900">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-4xl font-bold text-center mb-16">Features</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 text-center hover:border-blue-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/10">
+              <div className="text-4xl mb-4">🎬</div>
+              <h3 className="text-xl font-bold mb-2">Video Upload</h3>
+              <p className="text-gray-400">Upload videos in any format and get instant AI analysis</p>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 text-center hover:border-blue-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/10">
+              <div className="text-4xl mb-4">🤖</div>
+              <h3 className="text-xl font-bold mb-2">AI-Powered</h3>
+              <p className="text-gray-400">Powered by Google Gemini for accurate insights</p>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 text-center hover:border-blue-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/10">
+              <div className="text-4xl mb-4">📊</div>
+              <h3 className="text-xl font-bold mb-2">Analytics Dashboard</h3>
+              <p className="text-gray-400">View detailed analytics and summaries of your videos</p>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-lg p-8 text-center hover:border-blue-500/50 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/10">
+              <div className="text-4xl mb-4">⚡</div>
+              <h3 className="text-xl font-bold mb-2">Fast Processing</h3>
+              <p className="text-gray-400">Get results in seconds with our optimized processing</p>
+            </div>
           </div>
         </div>
       </section>
@@ -65,123 +75,3 @@ export default function Landing() {
   )
 }
 
-const containerStyle = {
-  minHeight: '100vh',
-  backgroundColor: '#0f0f0f',
-  color: '#fff',
-  paddingTop: '2rem'
-}
-
-const heroStyle = {
-  maxWidth: '1000px',
-  margin: '0 auto',
-  padding: '3rem 2rem',
-  textAlign: 'center'
-}
-
-const headingStyle = {
-  fontSize: '3.5rem',
-  fontWeight: 'bold',
-  marginBottom: '1rem',
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  backgroundClip: 'text'
-}
-
-const subtitleStyle = {
-  fontSize: '1.5rem',
-  marginBottom: '1rem',
-  color: '#ccc'
-}
-
-const descriptionStyle = {
-  fontSize: '1.1rem',
-  color: '#aaa',
-  marginBottom: '2rem',
-  lineHeight: '1.6'
-}
-
-const ctaContainerStyle = {
-  display: 'flex',
-  gap: '1rem',
-  justifyContent: 'center',
-  flexWrap: 'wrap',
-  marginTop: '2rem'
-}
-
-const primaryButtonStyle = {
-  padding: '0.75rem 2rem',
-  fontSize: '1rem',
-  backgroundColor: '#667eea',
-  color: '#fff',
-  border: 'none',
-  borderRadius: '8px',
-  cursor: 'pointer',
-  fontWeight: 'bold',
-  transition: 'all 0.3s ease',
-  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
-}
-
-const secondaryButtonStyle = {
-  padding: '0.75rem 2rem',
-  fontSize: '1rem',
-  backgroundColor: 'transparent',
-  color: '#667eea',
-  border: '2px solid #667eea',
-  borderRadius: '8px',
-  cursor: 'pointer',
-  fontWeight: 'bold',
-  transition: 'all 0.3s ease'
-}
-
-const signInPromptStyle = {
-  fontSize: '1.1rem',
-  color: '#aaa'
-}
-
-const featuresStyle = {
-  maxWidth: '1200px',
-  margin: '4rem auto',
-  padding: '2rem'
-}
-
-const featuresHeadingStyle = {
-  fontSize: '2.5rem',
-  textAlign: 'center',
-  marginBottom: '3rem',
-  color: '#fff'
-}
-
-const featureGridStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-  gap: '2rem'
-}
-
-const featureCardStyle = {
-  backgroundColor: '#1a1a1a',
-  padding: '2rem',
-  borderRadius: '12px',
-  textAlign: 'center',
-  border: '1px solid #333',
-  transition: 'all 0.3s ease',
-  cursor: 'pointer'
-}
-
-const featureIconStyle = {
-  fontSize: '3rem',
-  marginBottom: '1rem'
-}
-
-const featureTitleStyle = {
-  fontSize: '1.3rem',
-  marginBottom: '0.5rem',
-  color: '#fff'
-}
-
-const featureTextStyle = {
-  fontSize: '0.95rem',
-  color: '#aaa',
-  lineHeight: '1.5'
-}
