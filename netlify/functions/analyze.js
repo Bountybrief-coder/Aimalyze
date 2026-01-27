@@ -1,8 +1,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import fs from 'fs';
 import path from 'path';
+import { getClientIP, checkRateLimit, logIPAddress, cleanupOldLogs } from './supabaseClient.js';
 
 const client = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// Rate limit configuration
+const RATE_LIMIT_REQUESTS = 5;
+const RATE_LIMIT_WINDOW_HOURS = 24;
 
 export default async (req, context) => {
   if (req.method !== 'POST') {
@@ -12,16 +17,66 @@ export default async (req, context) => {
     });
   }
 
+  const clientIP = getClientIP(req, context);
+  console.log(`[REQUEST] IP: ${clientIP}, Time: ${new Date().toISOString()}`);
+
   try {
+    // Check rate limit before processing
+    const rateLimitCheck = await checkRateLimit(clientIP, RATE_LIMIT_REQUESTS, RATE_LIMIT_WINDOW_HOURS);
+    
+    if (rateLimitCheck.limited) {
+      console.warn(`[RATE LIMIT] IP ${clientIP} exceeded limit. Count: ${rateLimitCheck.count}, Remaining: ${rateLimitCheck.remaining}`);
+      
+      const resetTime = rateLimitCheck.resetTime ? rateLimitCheck.resetTime.toISOString() : 'unknown';
+      
+      // Log the rate limit violation
+      await logIPAddress(clientIP);
+      
+      return new Response(JSON.stringify({
+        error: 'Rate limit exceeded',
+        message: `Maximum ${RATE_LIMIT_REQUESTS} analysis requests per ${RATE_LIMIT_WINDOW_HOURS} hours exceeded`,
+        remaining: rateLimitCheck.remaining,
+        resetTime: resetTime,
+        retryAfter: rateLimitCheck.resetTime ? Math.ceil((rateLimitCheck.resetTime - new Date()) / 1000) : null
+      }), {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': rateLimitCheck.resetTime ? Math.ceil((rateLimitCheck.resetTime - new Date()) / 1000) : '3600'
+        }
+      });
+    }
+
     const formData = await req.formData();
     const file = formData.get('file');
 
     if (!file) {
+      console.warn(`[VALIDATION] No file provided from IP ${clientIP}`);
+      await logIPAddress(clientIP);
       return new Response(JSON.stringify({ error: 'No file provided' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
+
+    // Validate file size (max 500MB)
+    const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+    if (file.size > MAX_FILE_SIZE) {
+      console.warn(`[VALIDATION] File too large from IP ${clientIP}: ${file.size} bytes`);
+      await logIPAddress(clientIP);
+      return new Response(JSON.stringify({ 
+        error: 'File too large',
+        message: `Maximum file size is 500MB, received ${(file.size / 1024 / 1024).toFixed(2)}MB`
+      }), {
+        status: 413,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    console.log(`[PROCESSING] Starting analysis for ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB) from IP ${clientIP}`);
+
+    // Log the IP address for this successful analysis request
+    await logIPAddress(clientIP);
 
     // Convert file to base64
     const buffer = await file.arrayBuffer();
@@ -63,10 +118,12 @@ Be thorough but fair in your analysis.`;
     ]);
 
     const text = response.response.text();
+    console.log(`[API RESPONSE] Received response from Gemini API (${text.length} chars)`);
     
     // Extract JSON from response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
+      console.error(`[API ERROR] Failed to parse JSON from Gemini response from IP ${clientIP}`);
       return new Response(JSON.stringify({ 
         error: 'Failed to parse Gemini response',
         rawResponse: text 
@@ -77,6 +134,12 @@ Be thorough but fair in your analysis.`;
     }
 
     const result = JSON.parse(jsonMatch[0]);
+    console.log(`[SUCCESS] Analysis complete for IP ${clientIP}. Verdict: ${result.verdict}, Confidence: ${result.confidence}%`);
+
+    // Periodically clean up old logs
+    if (Math.random() < 0.1) { // 10% chance to run cleanup
+      cleanupOldLogs(7);
+    }
 
     return new Response(JSON.stringify(result), {
       status: 200,
@@ -84,7 +147,7 @@ Be thorough but fair in your analysis.`;
     });
 
   } catch (error) {
-    console.error('Error analyzing video:', error);
+    console.error(`[ERROR] Analysis failed for IP ${clientIP}:`, error);
     return new Response(JSON.stringify({ 
       error: 'Failed to analyze video',
       details: error.message 
