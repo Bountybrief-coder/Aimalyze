@@ -8,6 +8,7 @@ import Landing from './pages/Landing.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Upload from './pages/Upload.jsx'
 import Pricing from './pages/Pricing.jsx'
+import Admin from './pages/Admin.jsx'
 
 export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -128,6 +129,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/upload" element={<Upload />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/admin" element={<Admin />} />
           <Route 
             path="*" 
             element={
